@@ -2,7 +2,7 @@
 rem set some variables
 Setlocal EnableDelayedExpansion
 
-set gh_token=e31421a94f89ce411e366fed0487286b7619aba7
+set gh_token=insert your token here
 set apiurl=https://api.github.com/repos/Storj/driveshare-gui
 
 curl -H "Accept: application/json" -H "Authorization: token !gh_token!" !apiurl! > repository.json
@@ -74,8 +74,8 @@ for /L %%I in (0, 1, !pulls!) do (
         set /p releasename= < temp.dat
         del temp.dat
 
-        rem search for a release with automatic builds and pull request number
-        if "!releasename!" == "automatic builds pull request !pullnumber!" (
+        rem search for a release with autobin and pull request number
+        if "!releasename!" == "autobin pull request !pullnumber!" (
 
             set releasefound="true"
 
@@ -94,7 +94,7 @@ for /L %%I in (0, 1, !pulls!) do (
                 set /p assetlabel= < temp.dat
                 del temp.dat
 
-                if !assetlabel! == !pullsha! (
+                if !assetlabel! == !pullsha!.exe (
                     set assetfound="true"
                 )
             )
@@ -102,8 +102,8 @@ for /L %%I in (0, 1, !pulls!) do (
     )
     rem create new release if not exists
     if not !releasefound! == "true" (
-        echo create release automatic builds pull request !pullnumber!
-        curl -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: token !gh_token!" -X POST -d "{\"tag_name\":\"\",\"name\":\"automatic builds pull request !pullnumber!\",\"draft\":true}" !releasesurl! | jq ".upload_url" > temp.dat
+        echo create release autobin pull request !pullnumber!
+        curl -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: token !gh_token!" -X POST -d "{\"tag_name\":\"\",\"name\":\"autobin pull request !pullnumber!\",\"draft\":true}" !releasesurl! | jq --raw-output ".upload_url" > temp.dat
         set /p uploadurl= < temp.dat
         set uploadurl=!uploadurl:{?name,label}=!
         del temp.dat
@@ -141,12 +141,12 @@ for /L %%I in (0, 1, !pulls!) do (
         )
         cd !repositoryname!/releases
 
-        curl -H "Accept: application/json" -H "Content-Type: application/exe" -H "Authorization: token !gh_token!" --data-binary "@!filename!" "!uploadurl!?name=!filename!&label=!pullsha!" > upload.json
+        curl -H "Accept: application/json" -H "Content-Type: application/exe" -H "Authorization: token !gh_token!" --data-binary "@!filename!" "!uploadurl!?name=!filename!&label=!pullsha!.exe" > upload.json
         type upload.json | jq --raw-output ".browser_download_url" > temp.dat
         set /p downloadurl= < temp.dat
         del temp.dat
 
-        curl -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: token !gh_token!" -X POST -d "{\"body\":\"Automatic build binary ^(only available for team members^): [!filename!]^(!downloadurl!^) sha: !pullsha!\"}" !commenturl!
+        curl -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: token !gh_token!" -X POST -d "{\"body\":\"autobin binary ^(only available for team members^): [!filename!]^(!downloadurl!^) sha: !pullsha!.exe\"}" !commenturl!
         cd ../..
     )
 )
@@ -158,9 +158,9 @@ for /L %%J in (0, 1, !releases!) do (
     del temp.dat
 
     rem delete binaries for closed pull request
-    if "!releasename:~0,30!" == "automatic builds pull request " (
+    if "!releasename:~0,21!" == "autobin pull request " (
 
-        set pullnumber=!releasename:automatic builds pull request =!
+        set pullnumber=!releasename:autobin pull request =!
         curl -H "Accept: application/json" -H "Authorization: token !gh_token!" !pullurl!/!pullnumber! | jq --raw-output ".state" > temp.dat
         set /p pullstate= < temp.dat
         del temp.dat
@@ -175,7 +175,7 @@ for /L %%J in (0, 1, !releases!) do (
     )
     
     rem build binaries for new draft release
-    if "!releasename!" == "automatic builds draft release" (
+    if "!releasename!" == "autobin draft release" (
 
         set assetfound="false"
 
