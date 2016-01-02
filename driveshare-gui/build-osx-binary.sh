@@ -47,9 +47,13 @@ while true; do
                 for ((k=0; k < $(echo $releases | jq ".[$j].assets | length"); k++)); do
 
                     assetlabel=$(echo $releases | jq --raw-output ".[$j].assets[$k].label")
+                    assetname=$(echo $releases | jq --raw-output ".[$j].assets[$k].name")
 
                     if [ "$assetlabel" = "$pullsha.dmg" ]; then
                         assetfound=true
+                    elif [ "${assetname: -4}" = ".dmg" ]; then
+                        asseturl=$(echo $releases | jq --raw-output ".[$j].assets[$k].url")
+                        curl -X DELETE -H "Authorization: token $gh_token" $asseturl
                     fi
                 done
             fi
@@ -74,17 +78,6 @@ while true; do
             cd releases
 
             filename=$(ls)
-            for ((j=0; j < $(echo $releases | jq ". | length"); j++)); do
-                for ((k=0; k < $(echo $releases | jq ".[$j].assets | length"); k++)); do
-
-                    assetname=$(echo $releases | jq --raw-output ".[$j].assets[$k].name")
-
-                    if [ "$assetname" = "$filename" ]; then
-                        asseturl=$(echo $releases | jq --raw-output ".[$j].assets[$k].url")
-                        curl -X DELETE -H "Authorization: token $gh_token" $asseturl
-                    fi
-                done
-            done
 
             downloadurl=$(curl -H "Accept: application/json" -H "Content-Type: application/octet-stream" -H "Authorization: token $gh_token" --data-binary "@$filename" "$uploadurl?name=$filename&label=$pullsha.dmg" | jq --raw-output ".browser_download_url")
             echo curl -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: token $gh_token" -X POST -d "{\"body\":\"autobin binary \(only available for team members\): [$filename]\($downloadurl\) sha: $pullsha.dmg\"}" $commenturl

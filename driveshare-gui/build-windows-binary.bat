@@ -94,8 +94,19 @@ for /L %%I in (0, 1, !pulls!) do (
                 set /p assetlabel= < temp.dat
                 del temp.dat
 
+                type releases.json | jq --raw-output ".[%%J].assets[%%K].name" > temp.dat
+                set /p assetname= < temp.dat
+                del temp.dat
+
                 if !assetlabel! == !pullsha!.exe (
                     set assetfound="true"
+                ) else (
+                    if "!assetname:~-4!" == ".exe" (
+                        type releases.json | jq --raw-output ".[%%J].assets[%%K].url" > temp.dat
+                        set /p asseturl= < temp.dat
+                        del temp.dat
+                        curl -X DELETE -H "Authorization: token !gh_token!" !asseturl!
+                    )
                 )
             )
         )
@@ -123,23 +134,6 @@ for /L %%I in (0, 1, !pulls!) do (
         cd releases
         ren *.exe *.win32.exe
         for /R %%F in (*win32.exe) do set filename=%%~nxF
-
-        cd ../..
-        for /L %%J in (0, 1, !releases!) do (
-            for /L %%K in (0, 1, !assets!) do (
-                type releases.json | jq --raw-output ".[%%J].assets[%%K].name" > temp.dat
-                set /p assetname= < temp.dat
-                del temp.dat
-
-                if !assetname! == !filename! (
-                    type releases.json | jq --raw-output ".[%%J].assets[%%K].url" > temp.dat
-                        set /p asseturl= < temp.dat
-                        del temp.dat
-                        curl -X DELETE -H "Authorization: token !gh_token!" !asseturl!
-                )
-            )
-        )
-        cd !repositoryname!/releases
 
         curl -H "Accept: application/json" -H "Content-Type: application/exe" -H "Authorization: token !gh_token!" --data-binary "@!filename!" "!uploadurl!?name=!filename!&label=!pullsha!.exe" > upload.json
         type upload.json | jq --raw-output ".browser_download_url" > temp.dat
