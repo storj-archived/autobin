@@ -28,7 +28,6 @@ while true; do
         pullsha=$(echo $pulls | jq --raw-output ".[$i].merge_commit_sha")
         pullrepository=$(echo $pulls | jq --raw-output ".[$i].head.repo.html_url")
         pullbranch=$(echo $pulls | jq --raw-output ".[$i].head.ref")
-        commenturl=$(echo $pulls | jq --raw-output ".[$i]._links.comments.href")
 
         releasefound=false
         assetfound=false
@@ -79,25 +78,14 @@ while true; do
 
             filename=$(ls)
 
-            downloadurl=$(curl -H "Accept: application/json" -H "Content-Type: application/octet-stream" -H "Authorization: token $gh_token" --data-binary "@$filename" "$uploadurl?name=$filename&label=$pullsha.deb" | jq --raw-output ".browser_download_url")
-            echo curl -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: token $gh_token" -X POST -d "{\"body\":\"autobin binary \(only available for team members\): [$filename]\($downloadurl\) sha: $pullsha.deb\"}" $commenturl
-            curl -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: token $gh_token" -X POST -d "{\"body\":\"autobin binary (only available for team members): [$filename]($downloadurl) sha: $pullsha.deb\"}" $commenturl
+            $(curl -H "Accept: application/json" -H "Content-Type: application/octet-stream" -H "Authorization: token $gh_token" --data-binary "@$filename" "$uploadurl?name=$filename&label=$pullsha.deb"
         fi
     done
 
+    # build binary for draft release
     for ((j=0; j < $(echo $releases | jq ". | length"); j++)); do
 
         releasename=$(echo $releases | jq --raw-output ".[$j].name")
-
-        if [ "${releasename:0:21}" = "autobin pull request " ]; then
-            pullnumber=${releasename:21}
-
-            pullstate=$(curl -H "Accept: application/json" -H "Authorization: token $gh_token" $pullurl/$pullnumber | jq --raw-output ".state")
-            if [ "$pullstate" == "closed" ]; then
-                releaseid=$(echo $releases | jq --raw-output ".[$j].id")
-                curl -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: token $gh_token" -X DELETE $releasesurl/$releaseid
-            fi
-        fi
 
         if [ "$releasename" = "autobin draft release" ]; then
             assetfound=false

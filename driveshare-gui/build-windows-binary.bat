@@ -62,10 +62,6 @@ for /L %%I in (0, 1, !pulls!) do (
     set /p pullbranch= < temp.dat
     del temp.dat
 
-    type pulls.json | jq --raw-output ".[%%I]._links.comments.href" > temp.dat
-    set /p commenturl= < temp.dat
-    del temp.dat
-
     set releasefound="false"
     set assetfound="false"
     for /L %%J in (0, 1, !releases!) do (
@@ -135,12 +131,7 @@ for /L %%I in (0, 1, !pulls!) do (
         ren *.exe *.win32.exe
         for /R %%F in (*win32.exe) do set filename=%%~nxF
 
-        curl -H "Accept: application/json" -H "Content-Type: application/exe" -H "Authorization: token !gh_token!" --data-binary "@!filename!" "!uploadurl!?name=!filename!&label=!pullsha!.exe" > upload.json
-        type upload.json | jq --raw-output ".browser_download_url" > temp.dat
-        set /p downloadurl= < temp.dat
-        del temp.dat
-
-        curl -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: token !gh_token!" -X POST -d "{\"body\":\"autobin binary ^(only available for team members^): [!filename!]^(!downloadurl!^) sha: !pullsha!.exe\"}" !commenturl!
+        curl -H "Accept: application/json" -H "Content-Type: application/exe" -H "Authorization: token !gh_token!" --data-binary "@!filename!" "!uploadurl!?name=!filename!&label=!pullsha!.exe"
         cd ../..
     )
 )
@@ -150,23 +141,6 @@ for /L %%J in (0, 1, !releases!) do (
     type releases.json | jq --raw-output ".[%%J].name" > temp.dat
     set /p releasename= < temp.dat
     del temp.dat
-
-    rem delete binaries for closed pull request
-    if "!releasename:~0,21!" == "autobin pull request " (
-
-        set pullnumber=!releasename:autobin pull request =!
-        curl -H "Accept: application/json" -H "Authorization: token !gh_token!" !pullurl!/!pullnumber! | jq --raw-output ".state" > temp.dat
-        set /p pullstate= < temp.dat
-        del temp.dat
-
-        if "!pullstate!" == "closed" (
-            type releases.json | jq ".[%%J].id" > temp.dat
-            set /p releaseid= < temp.dat
-            del temp.dat
-
-            curl -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: token !gh_token!" -X DELETE !releasesurl!/!releaseid!
-        )
-    )
     
     rem build binaries for new draft release
     if "!releasename!" == "autobin draft release" (
