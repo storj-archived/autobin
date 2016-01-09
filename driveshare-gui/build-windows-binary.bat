@@ -25,12 +25,17 @@ set /p pullurl= < temp.dat
 set pullurl=!pullurl:{/number}=!
 del temp.dat
 
+type repository.json | jq --raw-output ".tags_url" > temp.dat
+set /p tagurl= < temp.dat
+del temp.dat
+
 :start
 cls
 
 rem get releases and pull requests from github
 curl -H "Accept: application/json" -H "Authorization: token !gh_token!" !releasesurl! > releases.json
 curl -H "Accept: application/json" -H "Authorization: token !gh_token!" !pullurl! > pulls.json
+curl -H "Accept: application/json" -H "Authorization: token !gh_token!" !tagurl! > tags.json
 
 rem counting releases
 type releases.json | jq ". | length" > temp.dat
@@ -80,17 +85,23 @@ for /L %%I in (0, 1, !pulls!) do (
             set uploadurl=!uploadurl:{?name,label}=!
             del temp.dat
 
-            type releases.json | jq ".[%%J].assets | length" > temp.dat
+            type releases.json | jq --raw-output ".[%%J].assets_url" > temp.dat
+            set /p asseturl= < temp.dat
+            del temp.dat
+
+            curl -H "Accept: application/json" -H "Authorization: token !gh_token!" !asseturl! > assets.json
+
+            type assets.json | jq ". | length" > temp.dat
             set /p assets= < temp.dat
             del temp.dat
             set /a assets=!assets!-1
 
             for /L %%K in (0, 1, !assets!) do (
-                type releases.json | jq --raw-output ".[%%J].assets[%%K].label" > temp.dat
+                type assets.json | jq --raw-output ".[%%K].label" > temp.dat
                 set /p assetlabel= < temp.dat
                 del temp.dat
 
-                type releases.json | jq --raw-output ".[%%J].assets[%%K].name" > temp.dat
+                type assets.json | jq --raw-output ".[%%K].name" > temp.dat
                 set /p assetname= < temp.dat
                 del temp.dat
 
@@ -98,10 +109,10 @@ for /L %%I in (0, 1, !pulls!) do (
                     set assetfound="true"
                 ) else (
                     if "!assetname:~-4!" == ".exe" (
-                        type releases.json | jq --raw-output ".[%%J].assets[%%K].url" > temp.dat
-                        set /p asseturl= < temp.dat
+                        type assets.json | jq --raw-output ".[%%K].url" > temp.dat
+                        set /p binaryurl= < temp.dat
                         del temp.dat
-                        curl -X DELETE -H "Authorization: token !gh_token!" !asseturl!
+                        curl -X DELETE -H "Authorization: token !gh_token!" !binaryurl!
                     )
                 )
             )
@@ -147,18 +158,36 @@ for /L %%J in (0, 1, !releases!) do (
 
         set assetfound="false"
 
-        type releases.json | jq ".[%%J].assets | length" > temp.dat
+        type releases.json | jq --raw-output ".[%%J].assets_url" > temp.dat
+        set /p asseturl= < temp.dat
+        del temp.dat
+
+        curl -H "Accept: application/json" -H "Authorization: token !gh_token!" !asseturl! > assets.json
+
+        type assets.json | jq ". | length" > temp.dat
         set /p assets= < temp.dat
         del temp.dat
         set /a assets=!assets!-1
 
         for /L %%K in (0, 1, !assets!) do (
-            type releases.json | jq --raw-output ".[%%J].assets[%%K].name" > temp.dat
+            type assets.json | jq --raw-output ".[%%K].name" > temp.dat
             set /p assetname= < temp.dat
             del temp.dat
 
             if "!assetname:~-4!" == ".exe" (
-                set assetfound="true"
+
+                type assets.json | jq --raw-output ".[%%K].state" > temp.dat
+                set /p assetstate= < temp.dat
+                del temp.dat
+
+                if "!assetstate!" == "new" (
+                    type assets.json | jq --raw-output ".[%%K].url" > temp.dat
+                    set /p binaryurl= < temp.dat
+                    del temp.dat
+                    curl -X DELETE -H "Authorization: token !gh_token!" !binaryurl!
+                ) else (
+                    set assetfound="true"
+                )
             )
         )
 
@@ -167,9 +196,6 @@ for /L %%J in (0, 1, !releases!) do (
             set /p uploadurl= < temp.dat
             set uploadurl=!uploadurl:{?name,label}=!
             del temp.dat
-
-            rem delete old build files
-            rmdir /S /Q !repositoryname!
 
             type releases.json | jq --raw-output ".[%%J].target_commitish" > temp.dat
             set /p targetbranch= < temp.dat
@@ -180,8 +206,26 @@ for /L %%J in (0, 1, !releases!) do (
             del temp.dat
 
             if not !targettag! == null (
-                set targetbranch=!targettag!
+
+                type tags.json | jq ". | length" > temp.dat
+                set /p tags= < temp.dat
+                del temp.dat
+                set /a tags=!tags!-1
+
+                for /L %%L in (0, 1, !tags!) do (
+
+                    type tags.json | jq --raw-output ".[%%L].name" > temp.dat
+                    set /p tag= < temp.dat
+                    del temp.dat
+
+                    if !targettag! == !tag! (
+                        set targetbranch=!targettag!
+                    )
+                )
             )
+
+            rem delete old build files
+            rmdir /S /Q !repositoryname!
 
             echo create and upload binary !repositoryurl! !targetbranch!
             git clone !repositoryurl! -b "!targetbranch!"

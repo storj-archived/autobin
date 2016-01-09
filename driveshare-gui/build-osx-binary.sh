@@ -12,6 +12,7 @@ releasesurl=$(echo $repository | jq --raw-output ".releases_url")
 releasesurl=${releasesurl//\{\/id\}/}
 pullurl=$(echo $repository | jq --raw-output ".pulls_url")
 pullurl=${pullurl//\{\/number\}/}
+tagurl=$(echo $repository | jq --raw-output ".tags_url")
 
 #endless loop
 while true; do
@@ -20,6 +21,7 @@ while true; do
     #get releases and pull requests from github
     releases=$(curl -H "Accept: application/json" -H "Authorization: token $gh_token" $releasesurl)
     pulls=$(curl -H "Accept: application/json" -H "Authorization: token $gh_token" $pullurl)
+    tags=$(curl -H "Accept: application/json" -H "Authorization: token $gh_token" $tagurl)
 
     #build binary for pull request
     for ((i=0; i < $(echo $pulls | jq ". | length"); i++)); do
@@ -43,16 +45,19 @@ while true; do
                 uploadurl=$(echo $releases | jq --raw-output ".[$j].upload_url")
                 uploadurl=${uploadurl//\{?name,label\}/}
 
-                for ((k=0; k < $(echo $releases | jq ".[$j].assets | length"); k++)); do
+                asseturl=$(echo $releases | jq --raw-output ".[$j].assets_url")
+                assets=$(curl -H "Accept: application/json" -H "Authorization: token $gh_token" $asseturl)
 
-                    assetlabel=$(echo $releases | jq --raw-output ".[$j].assets[$k].label")
-                    assetname=$(echo $releases | jq --raw-output ".[$j].assets[$k].name")
+                for ((k=0; k < $(echo $assets | jq ". | length"); k++)); do
+
+                    assetlabel=$(echo $assets | jq --raw-output ".[$k].label")
+                    assetname=$(echo $assets | jq --raw-output ".[$k].name")
 
                     if [ "$assetlabel" = "$pullsha.dmg" ]; then
                         assetfound=true
                     elif [ "${assetname: -4}" = ".dmg" ]; then
-                        asseturl=$(echo $releases | jq --raw-output ".[$j].assets[$k].url")
-                        curl -X DELETE -H "Authorization: token $gh_token" $asseturl
+                        binaryurl=$(echo $assets | jq --raw-output ".[$k].url")
+                        curl -X DELETE -H "Authorization: token $gh_token" $binaryurl
                     fi
                 done
             fi
@@ -82,19 +87,26 @@ while true; do
         fi
     done
 
-    # build binary for draft release
     for ((j=0; j < $(echo $releases | jq ". | length"); j++)); do
 
         releasename=$(echo $releases | jq --raw-output ".[$j].name")
 
         if [ "$releasename" = "autobin draft release" ]; then
             assetfound=false
-            for ((k=0; k < $(echo $releases | jq ".[$j].assets | length"); k++)); do
+            asseturl=$(echo $releases | jq --raw-output ".[$j].assets_url")
+            assets=$(curl -H "Accept: application/json" -H "Authorization: token $gh_token" $asseturl)
+            for ((k=0; k < $(echo $assets | jq ". | length"); k++)); do
 
-                assetname=$(echo $releases | jq --raw-output ".[$j].assets[$k].name")
+                assetname=$(echo $assets | jq --raw-output ".[$k].name")
 
                 if [ "${assetname: -4}" = ".dmg" ]; then
-                    assetfound=true
+                    assetstate=$(echo $assets | jq --raw-output ".[$k].state")
+                    if [ "$assetstate" = "new" ]; then
+                        binaryurl=$(echo $assets | jq --raw-output ".[$k].url")
+                        curl -X DELETE -H "Authorization: token $gh_token" $binaryurl
+                    else
+                        assetfound=true
+                    fi
                 fi
             done
 
@@ -103,13 +115,19 @@ while true; do
                 uploadurl=$(echo $releases | jq --raw-output ".[$j].upload_url")
                 uploadurl=${uploadurl//\{?name,label\}/}
 
-                rm -rf $repositoryname
-
+                # existing build tag or branch
                 targetbranch=$(echo $releases | jq --raw-output ".[$j].target_commitish")
                 targettag=$(echo $releases | jq --raw-output ".[$j].tag_name")
                 if [ "$targettag" != "null" ]; then
-                    targetbranch=$targettag
+                    for ((l=0; l < $(echo $tags | jq ". | length"); l++)); do
+                        tag=$(echo $tags | jq --raw-output ".[$l].name")
+                        if [ "$targettag" = "$tag" ]; then
+                            targetbranch=$targettag
+                        fi 
+                    done
                 fi
+
+                rm -rf $repositoryname
 
                 echo create and upload binary $repositoryurl $targetbranch
                 git clone $repositoryurl -b $targetbranch
