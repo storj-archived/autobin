@@ -105,14 +105,21 @@ for /L %%I in (0, 1, !pulls!) do (
                 set /p assetname= < temp.dat
                 del temp.dat
 
-                if !assetlabel! == !pullsha!.exe (
-                    set assetfound="true"
-                ) else (
-                    if "!assetname:~-4!" == ".exe" (
-                        type assets.json | jq --raw-output ".[%%K].url" > temp.dat
-                        set /p binaryurl= < temp.dat
-                        del temp.dat
-                        curl -X DELETE -H "Authorization: token !gh_token!" !binaryurl!
+                if "!assetname:~-4!" == ".exe" (
+
+                    type assets.json | jq --raw-output ".[%%K].state" > temp.dat
+                    set /p assetstate= < temp.dat
+                    del temp.dat
+
+                    if !assetlabel! == !pullsha!.exe (
+                        if not "!assetstate!" == "new" (
+                            set assetfound="true"
+                        ) else (
+                            type assets.json | jq --raw-output ".[%%K].url" > temp.dat
+                            set /p binaryurl= < temp.dat
+                            del temp.dat
+                            curl -X DELETE -H "Authorization: token !gh_token!" !binaryurl!
+                        )
                     )
                 )
             )

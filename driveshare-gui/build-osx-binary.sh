@@ -53,11 +53,14 @@ while true; do
                     assetlabel=$(echo $assets | jq --raw-output ".[$k].label")
                     assetname=$(echo $assets | jq --raw-output ".[$k].name")
 
-                    if [ "$assetlabel" = "$pullsha.dmg" ]; then
-                        assetfound=true
-                    elif [ "${assetname: -4}" = ".dmg" ]; then
-                        binaryurl=$(echo $assets | jq --raw-output ".[$k].url")
-                        curl -X DELETE -H "Authorization: token $gh_token" $binaryurl
+                    if [ "${assetname: -4}" = ".dmg" ]; then
+                        assetstate=$(echo $assets | jq --raw-output ".[$k].state")
+                        if [ "$assetlabel" = "$pullsha.dmg" ] && [ "$assetstate" != "new" ]; then
+                            assetfound=true
+                        else
+                            binaryurl=$(echo $assets | jq --raw-output ".[$k].url")
+                            curl -X DELETE -H "Authorization: token $gh_token" $binaryurl
+                        fi
                     fi
                 done
             fi
