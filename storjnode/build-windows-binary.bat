@@ -115,6 +115,11 @@ for /L %%I in (0, 1, !pulls!) do (
                             del temp.dat
                             curl -X DELETE -H "Authorization: token !gh_token!" !binaryurl!
                         )
+                    ) else (
+                        type assets.json | jq --raw-output ".[%%K].url" > temp.dat
+                        set /p binaryurl= < temp.dat
+                        del temp.dat
+                        curl -X DELETE -H "Authorization: token !gh_token!" !binaryurl!
                     )
                 )
             )
@@ -131,8 +136,8 @@ for /L %%I in (0, 1, !pulls!) do (
     )
     rem create and upload a new binary if not exists
     if not !assetfound! == "true" (
-        mkdir build
-        cd build
+        mkdir repos
+        cd repos
 
         rem delete old build files
         rmdir /S /Q !repositoryname!
@@ -140,31 +145,33 @@ for /L %%I in (0, 1, !pulls!) do (
         echo create and upload binary !pullrepository! !pullbranch!
         git clone "!pullrepository!" -b "!pullbranch!"
         cd !repositoryname!
-        virtualenv autobin
+        virtualenv pythonenv
 
         rem workaround for https://github.com/pypa/virtualenv/issues/93
-        set "TCL_LIBRARY=C:\Python27\tcl\tcl8.5"
-        set "TK_LIBRARY=C:\Python27\tcl\tk8.5"
+        set TCL_LIBRARY=C:\Python27\tcl\tcl8.5
+        set TK_LIBRARY=C:\Python27\tcl\tk8.5
+        set PYTHONIOENCODING=utf-8
 
-        autobin\Scripts\activate
+        call pythonenv\Scripts\activate
         pip install http://sourceforge.net/projects/py2exe/files/latest/download?source=files
         pip install -r requirements.txt
         python setup.py install
         rmdir /S /Q dist
 
         rem fix missing init.py
-        type NUL > autobin\Lib\site-packages\zope\__init__.py
+        type NUL > pythonenv\Lib\site-packages\zope\__init__.py
 
         python setup.py py2exe
-        autobin\Scripts\deactivate.bat
+        call pythonenv\Scripts\deactivate.bat
 
         cd dist
         mkdir !repositoryname!
-        mv * !repositoryname!
+        move * !repositoryname!
+        move tcl !repositoryname!\tcl
         "%ProgramFiles%\7-Zip\7z.exe" -tzip a !repositoryname!
 
         ren *.zip *.win32.zip
-        for /R %%F in (*win32.zip) do set filename=%%~nxF
+        for /R %%F in (*.win32.zip) do set filename=%%~nxF
 
         curl -H "Accept: application/json" -H "Content-Type: application/zip" -H "Authorization: token !gh_token!" --data-binary "@!filename!" "!uploadurl!?name=!filename!&label=!pullsha!.win32.zip"
         cd ../../..
@@ -198,7 +205,7 @@ for /L %%J in (0, 1, !releases!) do (
             set /p assetname= < temp.dat
             del temp.dat
 
-            if "!assetname:~-10!" == "win32.zip" (
+            if "!assetname:~-10!" == ".win32.zip" (
 
                 type assets.json | jq --raw-output ".[%%K].state" > temp.dat
                 set /p assetstate= < temp.dat
@@ -248,8 +255,8 @@ for /L %%J in (0, 1, !releases!) do (
                 )
             )
 
-            mkdir build
-            cd build
+            mkdir repos
+            cd repos
 
             rem delete old build files
             rmdir /S /Q !repositoryname!
@@ -257,31 +264,33 @@ for /L %%J in (0, 1, !releases!) do (
             echo create and upload binary !repositoryurl! !targetbranch!
             git clone !repositoryurl! -b "!targetbranch!"
             cd !repositoryname!
-            virtualenv autobin
+            virtualenv pythonenv
 
             rem workaround for https://github.com/pypa/virtualenv/issues/93
-            set "TCL_LIBRARY=C:\Python27\tcl\tcl8.5"
-            set "TK_LIBRARY=C:\Python27\tcl\tk8.5"
+            set TCL_LIBRARY=C:\Python27\tcl\tcl8.5
+            set TK_LIBRARY=C:\Python27\tcl\tk8.5
+            set PYTHONIOENCODING=utf-8
 
-            autobin\Scripts\activate
+            call pythonenv\Scripts\activate
             pip install http://sourceforge.net/projects/py2exe/files/latest/download?source=files
             pip install -r requirements.txt
             python setup.py install
             rmdir /S /Q dist
 
             rem fix missing init.py
-            type NUL > autobin\Lib\site-packages\zope\__init__.py
+            type NUL > pythonenv\Lib\site-packages\zope\__init__.py
 
             python setup.py py2exe
-            autobin\Scripts\deactivate.bat
+            call pythonenv\Scripts\deactivate.bat
 
             cd dist
             mkdir !repositoryname!
-            mv * !repositoryname!
+            move * !repositoryname!
+       	    move tcl !repositoryname!\tcl
             "%ProgramFiles%\7-Zip\7z.exe" -tzip a !repositoryname!
 
             ren *.zip *.win32.zip
-            for /R %%F in (*win32.zip) do set filename=%%~nxF
+            for /R %%F in (*.win32.zip) do set filename=%%~nxF
 
             curl -H "Accept: application/json" -H "Content-Type: application/zip" -H "Authorization: token !gh_token!" --data-binary "@!filename!" "!uploadurl!?name=!filename!" > upload.json
             cd ../../..
