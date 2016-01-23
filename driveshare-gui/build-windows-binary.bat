@@ -115,6 +115,11 @@ for /L %%I in (0, 1, !pulls!) do (
                             del temp.dat
                             curl -X DELETE -H "Authorization: token !gh_token!" !binaryurl!
                         )
+                    ) else (
+                        type assets.json | jq --raw-output ".[%%K].url" > temp.dat
+                        set /p binaryurl= < temp.dat
+                        del temp.dat
+                        curl -X DELETE -H "Authorization: token !gh_token!" !binaryurl!
                     )
                 )
             )
