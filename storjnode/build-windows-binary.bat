@@ -1,7 +1,7 @@
 @echo off
 Setlocal EnableDelayedExpansion
 
-set apiurl=https://api.github.com/repos/Storj/driveshare-gui
+set apiurl=https://api.github.com/repos/Storj/storjnode
 
 curl -H "Accept: application/json" -H "Authorization: token !gh_token!" !apiurl! > repository.json
 
@@ -100,13 +100,13 @@ for /L %%I in (0, 1, !pulls!) do (
                 set /p assetname= < temp.dat
                 del temp.dat
 
-                if "!assetname:~-4!" == ".exe" (
+                if "!assetname:~-10!" == ".win32.zip" (
 
                     type assets.json | jq --raw-output ".[%%K].state" > temp.dat
                     set /p assetstate= < temp.dat
                     del temp.dat
 
-                    if !assetlabel! == !pullsha!.exe (
+                    if !assetlabel! == !pullsha!.win32.zip (
                         if not "!assetstate!" == "new" (
                             set assetfound="true"
                         ) else (
@@ -140,14 +140,33 @@ for /L %%I in (0, 1, !pulls!) do (
         echo create and upload binary !pullrepository! !pullbranch!
         git clone "!pullrepository!" -b "!pullbranch!"
         cd !repositoryname!
-        cmd /c npm install
-        cmd /c npm run release
+        virtualenv autobin
 
-        cd releases
-        ren *.exe *.win32.exe
-        for /R %%F in (*win32.exe) do set filename=%%~nxF
+        rem workaround for https://github.com/pypa/virtualenv/issues/93
+        set "TCL_LIBRARY=C:\Python27\tcl\tcl8.5"
+        set "TK_LIBRARY=C:\Python27\tcl\tk8.5"
 
-        curl -H "Accept: application/json" -H "Content-Type: application/exe" -H "Authorization: token !gh_token!" --data-binary "@!filename!" "!uploadurl!?name=!filename!&label=!pullsha!.exe"
+        autobin\Scripts\activate
+        pip install http://sourceforge.net/projects/py2exe/files/latest/download?source=files
+        pip install -r requirements.txt
+        python setup.py install
+        rmdir /S /Q dist
+
+        rem fix missing init.py
+        type NUL > autobin\Lib\site-packages\zope\__init__.py
+
+        python setup.py py2exe
+        autobin\Scripts\deactivate.bat
+
+        cd dist
+        mkdir !repositoryname!
+        mv * !repositoryname!
+        "%ProgramFiles%\7-Zip\7z.exe" -tzip a !repositoryname!
+
+        ren *.zip *.win32.zip
+        for /R %%F in (*win32.zip) do set filename=%%~nxF
+
+        curl -H "Accept: application/json" -H "Content-Type: application/zip" -H "Authorization: token !gh_token!" --data-binary "@!filename!" "!uploadurl!?name=!filename!&label=!pullsha!.win32.zip"
         cd ../../..
     )
 )
@@ -157,7 +176,7 @@ for /L %%J in (0, 1, !releases!) do (
     type releases.json | jq --raw-output ".[%%J].name" > temp.dat
     set /p releasename= < temp.dat
     del temp.dat
-    
+
     rem build binaries for new draft release
     if "!releasename!" == "autobin draft release" (
 
@@ -179,7 +198,7 @@ for /L %%J in (0, 1, !releases!) do (
             set /p assetname= < temp.dat
             del temp.dat
 
-            if "!assetname:~-4!" == ".exe" (
+            if "!assetname:~-10!" == "win32.zip" (
 
                 type assets.json | jq --raw-output ".[%%K].state" > temp.dat
                 set /p assetstate= < temp.dat
@@ -238,14 +257,33 @@ for /L %%J in (0, 1, !releases!) do (
             echo create and upload binary !repositoryurl! !targetbranch!
             git clone !repositoryurl! -b "!targetbranch!"
             cd !repositoryname!
-            cmd /c npm install
-            cmd /c npm run release
+            virtualenv autobin
 
-            cd releases
-            ren *.exe *.win32.exe
-            for /R %%F in (*win32.exe) do set filename=%%~nxF
+            rem workaround for https://github.com/pypa/virtualenv/issues/93
+            set "TCL_LIBRARY=C:\Python27\tcl\tcl8.5"
+            set "TK_LIBRARY=C:\Python27\tcl\tk8.5"
 
-            curl -H "Accept: application/json" -H "Content-Type: application/exe" -H "Authorization: token !gh_token!" --data-binary "@!filename!" "!uploadurl!?name=!filename!" > upload.json
+            autobin\Scripts\activate
+            pip install http://sourceforge.net/projects/py2exe/files/latest/download?source=files
+            pip install -r requirements.txt
+            python setup.py install
+            rmdir /S /Q dist
+
+            rem fix missing init.py
+            type NUL > autobin\Lib\site-packages\zope\__init__.py
+
+            python setup.py py2exe
+            autobin\Scripts\deactivate.bat
+
+            cd dist
+            mkdir !repositoryname!
+            mv * !repositoryname!
+            "%ProgramFiles%\7-Zip\7z.exe" -tzip a !repositoryname!
+
+            ren *.zip *.win32.zip
+            for /R %%F in (*win32.zip) do set filename=%%~nxF
+
+            curl -H "Accept: application/json" -H "Content-Type: application/zip" -H "Authorization: token !gh_token!" --data-binary "@!filename!" "!uploadurl!?name=!filename!" > upload.json
             cd ../../..
         )
     )
