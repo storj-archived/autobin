@@ -2,7 +2,7 @@
 
 #set some variables
 gh_token=insert your token here
-apiurl=https://api.github.com/repos/Storj/driveshare-gui
+apiurl=https://api.github.com/repos/Storj/storjnode
 
 repository=$(curl -H "Accept: application/json" -H "Authorization: token $gh_token" $apiurl)
 
@@ -42,7 +42,7 @@ while true; do
                     assetname=$(echo $releases | jq --raw-output ".[$j].assets[$k].name")
                     downloadurl=$(echo $releases | jq --raw-output ".[$j].assets[$k].browser_download_url")
 
-                    if [ "${assetlabel:0:-4}" = "$pullsha" ]; then
+                    if [ "${assetlabel:0:-10}" = "$pullsha" ]; then
                         autobincomment="$autobincomment\r\n[$assetname]($downloadurl)"
 
                         # calculate the time difference between binary upload and now
@@ -57,7 +57,7 @@ while true; do
             fi
         done
 
-        if [ "$(printf "$autobincomment" | wc -l)" -eq "4" ]; then
+        if [ "$(printf "$autobincomment" | wc -l)" -eq "3" ]; then
             # all binaries uploaded. no reason to wait
             waitforbinaries=false
         elif [ "$(printf "$autobincomment" | wc -l)" -eq "1" ]; then
