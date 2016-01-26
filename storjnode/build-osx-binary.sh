@@ -1,6 +1,6 @@
 #!/bin/bash
 
-apiurl=https://api.github.com/repos/Storj/driveshare-gui
+apiurl=https://api.github.com/repos/Storj/storjnode
 
 repository=$(curl -H "Accept: application/json" -H "Authorization: token $gh_token" $apiurl)
 
@@ -47,9 +47,9 @@ for ((i=0; i < $(echo $pulls | jq ". | length"); i++)); do
                 assetlabel=$(echo $assets | jq --raw-output ".[$k].label")
                 assetname=$(echo $assets | jq --raw-output ".[$k].name")
 
-                if [ "${assetname: -4}" = ".dmg" ]; then
+                if [ "${assetname: -10}" = ".osx64.zip" ]; then
                     assetstate=$(echo $assets | jq --raw-output ".[$k].state")
-                    if [ "$assetlabel" = "$pullsha.dmg" ] && [ "$assetstate" != "new" ]; then
+                    if [ "$assetlabel" = "$pullsha.osx64.zip" ] && [ "$assetstate" != "new" ]; then
                         assetfound=true
                     else
                         binaryurl=$(echo $assets | jq --raw-output ".[$k].url")
@@ -72,17 +72,30 @@ for ((i=0; i < $(echo $pulls | jq ". | length"); i++)); do
 
         rm -rf $repositoryname
 
-        echo $pullrepository
         echo create and upload binary $pullrepository $pullbranch
         git clone $pullrepository -b $pullbranch
         cd $repositoryname
-        npm install
-        npm run release
-        cd releases
+        virtualenv -p python2 pythonenv
 
-        filename=$(ls)
+        # workaround for http://stackoverflow.com/questions/25394320/py2app-modulegraph-missing-scan-code
+        sed -i i'' 's/scan_code/_scan_code/g' virtualenv/lib/python2.7/site-packages/py2app/recipes/virtualenv.py
+        sed -i '' 's/load_module/_load_module/g' virtualenv/lib/python2.7/site-packages/py2app/recipes/virtualenv.py
 
-        curl -H "Accept: application/json" -H "Content-Type: application/octet-stream" -H "Authorization: token $gh_token" --data-binary "@$filename" "$uploadurl?name=$filename&label=$pullsha.dmg"
+        source pythonenv/bin/activate
+        pip2 install py2app
+        pip2 install -r requirements.txt
+        python2 setup.py install
+        rm -r dist
+
+        python2 setup.py py2app
+        deactivate
+
+        cd dist
+        zip -r -9 storjnode.osx64.zip storjnode.app
+
+        filename=storjnode.osx64.zip
+
+        curl -H "Accept: application/json" -H "Content-Type: application/octet-stream" -H "Authorization: token $gh_token" --data-binary "@$filename" "$uploadurl?name=$filename&label=$pullsha.osx64.zip"
     fi
 done
 
@@ -98,7 +111,7 @@ for ((j=0; j < $(echo $releases | jq ". | length"); j++)); do
 
             assetname=$(echo $assets | jq --raw-output ".[$k].name")
 
-            if [ "${assetname: -4}" = ".dmg" ]; then
+            if [ "${assetname: -10}" = ".osx64.zip" ]; then
                 assetstate=$(echo $assets | jq --raw-output ".[$k].state")
                 if [ "$assetstate" = "new" ]; then
                     binaryurl=$(echo $assets | jq --raw-output ".[$k].url")
@@ -110,7 +123,7 @@ for ((j=0; j < $(echo $releases | jq ". | length"); j++)); do
         done
 
         if [ $assetfound = false ]; then
-           
+
             uploadurl=$(echo $releases | jq --raw-output ".[$j].upload_url")
             uploadurl=${uploadurl//\{?name,label\}/}
 
@@ -134,11 +147,26 @@ for ((j=0; j < $(echo $releases | jq ". | length"); j++)); do
             echo create and upload binary $repositoryurl $targetbranch
             git clone $repositoryurl -b $targetbranch
             cd $repositoryname
-            npm install
-            npm run release
-            cd releases
 
-            filename=$(ls)
+            virtualenv -p python2 pythonenv
+
+            # workaround for http://stackoverflow.com/questions/25394320/py2app-modulegraph-missing-scan-code
+            sed -i i'' 's/scan_code/_scan_code/g' virtualenv/lib/python2.7/site-packages/py2app/recipes/virtualenv.py
+            sed -i '' 's/load_module/_load_module/g' virtualenv/lib/python2.7/site-packages/py2app/recipes/virtualenv.py
+
+            source pythonenv/bin/activate
+            pip2 install py2app
+            pip2 install -r requirements.txt
+            python2 setup.py install
+            rm -r dist
+
+            python2 setup.py py2app
+            deactivate
+
+            cd dist
+            zip -r -9 storjnode.osx64.zip storjnode.app
+
+            filename=storjnode.osx64.zip
             curl -H "Accept: application/json" -H "Content-Type: application/octet-stream" -H "Authorization: token $gh_token" --data-binary "@$filename" "$uploadurl?name=$filename"
         fi
     fi
