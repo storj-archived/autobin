@@ -164,10 +164,11 @@ for /L %%I in (0, 1, !pulls!) do (
         python setup.py py2exe
         call pythonenv\Scripts\deactivate.bat
 
+        mkdir disttemp
+        move dist disttemp\!repositoryname!
+        move disttemp dist
+
         cd dist
-        mkdir !repositoryname!
-        move * !repositoryname!
-        move tcl !repositoryname!\tcl
         "%ProgramFiles%\7-Zip\7z.exe" -tzip a !repositoryname!
 
         ren *.zip *.win32.zip
@@ -282,10 +283,11 @@ for /L %%J in (0, 1, !releases!) do (
             python setup.py py2exe
             call pythonenv\Scripts\deactivate.bat
 
+            mkdir disttemp
+            move dist disttemp\!repositoryname!
+            move disttemp dist
+
             cd dist
-            mkdir !repositoryname!
-            move * !repositoryname!
-       	    move tcl !repositoryname!\tcl
             "%ProgramFiles%\7-Zip\7z.exe" -tzip a !repositoryname!
 
             ren *.zip *.win32.zip
