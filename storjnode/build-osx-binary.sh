@@ -77,12 +77,13 @@ for ((i=0; i < $(echo $pulls | jq ". | length"); i++)); do
         cd $repositoryname
         virtualenv -p python2 pythonenv
 
-        # workaround for http://stackoverflow.com/questions/25394320/py2app-modulegraph-missing-scan-code
-        sed -i i'' 's/scan_code/_scan_code/g' virtualenv/lib/python2.7/site-packages/py2app/recipes/virtualenv.py
-        sed -i '' 's/load_module/_load_module/g' virtualenv/lib/python2.7/site-packages/py2app/recipes/virtualenv.py
-
         source pythonenv/bin/activate
+
         pip2 install py2app
+        # workaround for http://stackoverflow.com/questions/25394320/py2app-modulegraph-missing-scan-code
+        sed -i '' 's/scan_code/_scan_code/g' pythonenv/lib/python2.7/site-packages/py2app/recipes/virtualenv.py
+        sed -i '' 's/load_module/_load_module/g' pythonenv/lib/python2.7/site-packages/py2app/recipes/virtualenv.py
+
         pip2 install -r requirements.txt
         python2 setup.py install
         rm -r dist
@@ -150,12 +151,13 @@ for ((j=0; j < $(echo $releases | jq ". | length"); j++)); do
 
             virtualenv -p python2 pythonenv
 
-            # workaround for http://stackoverflow.com/questions/25394320/py2app-modulegraph-missing-scan-code
-            sed -i i'' 's/scan_code/_scan_code/g' virtualenv/lib/python2.7/site-packages/py2app/recipes/virtualenv.py
-            sed -i '' 's/load_module/_load_module/g' virtualenv/lib/python2.7/site-packages/py2app/recipes/virtualenv.py
-
             source pythonenv/bin/activate
+
             pip2 install py2app
+            # workaround for http://stackoverflow.com/questions/25394320/py2app-modulegraph-missing-scan-code
+            sed -i '' 's/scan_code/_scan_code/g' pythonenv/lib/python2.7/site-packages/py2app/recipes/virtualenv.py
+            sed -i '' 's/load_module/_load_module/g' pythonenv/lib/python2.7/site-packages/py2app/recipes/virtualenv.py
+
             pip2 install -r requirements.txt
             python2 setup.py install
             rm -r dist

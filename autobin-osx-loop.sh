@@ -2,17 +2,17 @@
 
 export gh_token=insert your token here
 
-workdir=${pwd}
+workdir="${pwd}"
 
 #endless loop
 while true; do
 
     clear
-    cd $workdir
+    cd "$workdir"
     bash driveshare-gui/build-osx-binary.sh
 
     clear
-    cd $workdir
+    cd "$workdir"
     bash storjnode/build-osx-binary.sh
 
     sleep 60
