@@ -76,8 +76,15 @@ for ((i=0; i < $(echo $pulls | jq ". | length"); i++)); do
         echo create and upload binary $pullrepository $pullbranch
         git clone $pullrepository -b $pullbranch
         cd $repositoryname
-        npm install
-        npm run release
+        
+        # run script as root
+        npm install --unsafe-perm
+        npm run release --unsafe-perm
+
+        # run script as normal user
+        #npm install
+        #npm run release
+
         cd releases
 
         filename=$(ls)
@@ -134,8 +141,14 @@ for ((j=0; j < $(echo $releases | jq ". | length"); j++)); do
             echo create and upload binary $repositoryurl $targetbranch
             git clone $repositoryurl -b $targetbranch
             cd $repositoryname
-            npm install
-            npm run release
+
+            # run script as root
+            npm install --unsafe-perm
+            npm run release --unsafe-perm
+
+            # run script as normal user
+            #npm install
+            #npm run release
             cd releases
 
             filename=$(ls)
