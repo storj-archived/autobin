@@ -91,7 +91,16 @@ for ((i=0; i < $(echo $pulls | jq ". | length"); i++)); do
         python2 setup.py py2app
         deactivate
 
-        cd dist
+        # workaround for lib2to3 issue (https://github.com/Storj/storjnode/issues/102)
+        cd dist/storjnode.app/Contents/Resources/lib/python2.7/
+        mv site-packages.zip unzipme.zip
+        mkdir site-packages.zip
+        mv unzipme.zip site-packages.zip/
+        cd site-packages.zip/
+        unzip unzipme.zip
+        rm unzipme.zip
+        cd ../../../../../../
+        
         zip -r -9 storjnode.osx64.zip storjnode.app
 
         filename=storjnode.osx64.zip
@@ -165,7 +174,16 @@ for ((j=0; j < $(echo $releases | jq ". | length"); j++)); do
             python2 setup.py py2app
             deactivate
 
-            cd dist
+            # workaround for lib2to3 issue (https://github.com/Storj/storjnode/issues/102)
+            cd dist/storjnode.app/Contents/Resources/lib/python2.7/
+            mv site-packages.zip unzipme.zip
+            mkdir site-packages.zip
+            mv unzipme.zip site-packages.zip/
+            cd site-packages.zip/
+            unzip unzipme.zip
+            rm unzipme.zip
+            cd ../../../../../../
+        
             zip -r -9 storjnode.osx64.zip storjnode.app
 
             filename=storjnode.osx64.zip
