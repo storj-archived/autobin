@@ -75,7 +75,7 @@ for ((i=0; i < $(echo $pulls | jq ". | length"); i++)); do
         echo create and upload binary $pullrepository $pullbranch
         git clone $pullrepository -b $pullbranch
         cd $repositoryname
-        virtualenv -p python2 pythonenv
+        virtualenv -p python2.7 pythonenv
 
         source pythonenv/bin/activate
 
@@ -158,7 +158,7 @@ for ((j=0; j < $(echo $releases | jq ". | length"); j++)); do
             git clone $repositoryurl -b $targetbranch
             cd $repositoryname
 
-            virtualenv -p python2 pythonenv
+            virtualenv -p python2.7 pythonenv
 
             source pythonenv/bin/activate
 
