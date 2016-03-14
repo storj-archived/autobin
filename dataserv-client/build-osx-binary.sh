@@ -92,7 +92,7 @@ for ((i=0; i < $(echo $pulls | jq ". | length"); i++)); do
         deactivate
 
         # workaround for lib2to3 issue (https://github.com/Storj/storjnode/issues/102)
-        cd dist/storjnode.app/Contents/Resources/lib/python2.7/
+        cd dist/$repositoryname.app/Contents/Resources/lib/python2.7/
         mv site-packages.zip unzipme.zip
         mkdir site-packages.zip
         mv unzipme.zip site-packages.zip/
@@ -101,9 +101,9 @@ for ((i=0; i < $(echo $pulls | jq ". | length"); i++)); do
         rm unzipme.zip
         cd ../../../../../../
         
-        zip -r -9 storjnode.osx64.zip storjnode.app
+        zip -r -9 $repositoryname.osx64.zip $repositoryname.app
 
-        filename=storjnode.osx64.zip
+        filename=$repositoryname.osx64.zip
 
         curl -H "Accept: application/json" -H "Content-Type: application/octet-stream" -H "Authorization: token $gh_token" --data-binary "@$filename" "$uploadurl?name=$filename&label=$pullsha.osx64.zip"
     fi
@@ -175,7 +175,7 @@ for ((j=0; j < $(echo $releases | jq ". | length"); j++)); do
             deactivate
 
             # workaround for lib2to3 issue (https://github.com/Storj/storjnode/issues/102)
-            cd dist/storjnode.app/Contents/Resources/lib/python2.7/
+            cd dist/$repositoryname.app/Contents/Resources/lib/python2.7/
             mv site-packages.zip unzipme.zip
             mkdir site-packages.zip
             mv unzipme.zip site-packages.zip/
@@ -184,9 +184,9 @@ for ((j=0; j < $(echo $releases | jq ". | length"); j++)); do
             rm unzipme.zip
             cd ../../../../../../
         
-            zip -r -9 storjnode.osx64.zip storjnode.app
+            zip -r -9 $repositoryname.osx64.zip $repositoryname.app
 
-            filename=storjnode.osx64.zip
+            filename=$repositoryname.osx64.zip
             curl -H "Accept: application/json" -H "Content-Type: application/octet-stream" -H "Authorization: token $gh_token" --data-binary "@$filename" "$uploadurl?name=$filename"
         fi
     fi
