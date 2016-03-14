@@ -1,7 +1,7 @@
 autobin
 =======
 
-Cross platform batch / shell scripts used to automatically build binaries for open pull requests and draft releases of the Storj [driveshare-gui](https://api.github.com/repos/Storj/driveshare-gui) and [storjnode](https://api.github.com/repos/Storj/storjnode).
+Cross platform batch / shell scripts used to automatically build binaries for open pull requests and draft releases of the Storj [driveshare-gui](https://api.github.com/repos/Storj/driveshare-gui), [dataserv-client](https://api.github.com/repos/Storj/dataserv-client) and [storjnode](https://api.github.com/repos/Storj/storjnode).
 
 Open Pull Request
 -----------------
@@ -33,4 +33,4 @@ Change the github api url [like this](https://api.github.com/repos/Storj/drivesh
 Dependencies
 ------------
 
-In order to run autobin you have to install git, curl, jq and the dependencies for the build steps. Driveshare-gui needs nodejs and NSIS (windows only). Storjnode needs python2, psutil, py2exe / py2app, virtualenv, 7zip, Microsoft VisualC++ Compiler Package for Python 2.7
+In order to run autobin you have to install git, curl, jq and the dependencies for the build steps. Driveshare-gui needs nodejs and NSIS (windows only). Dataserv-client and Storjnode needs python2, psutil, py2exe / py2app, virtualenv, 7zip, Microsoft VisualC++ Compiler Package for Python 2.7

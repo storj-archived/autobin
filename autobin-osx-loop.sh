@@ -15,5 +15,9 @@ while true; do
     cd "$workdir"
     bash storjnode/build-osx-binary.sh
 
-    sleep 60
+    clear
+    cd "$workdir"
+    bash dataserv-client/build-osx-binary.sh
+
+    sleep 600
 done

@@ -16,5 +16,9 @@ cd !workdir!
 cls
 call storjnode\build-windows-binary.bat
 
-timeout /T 60
+cd !workdir!
+cls
+call dataserv-client\build-windows-binary.bat
+
+timeout /T 600
 goto start
