@@ -34,3 +34,9 @@ Dependencies
 ------------
 
 In order to run autobin you have to install git, curl, jq and the dependencies for the build steps. Driveshare-gui needs nodejs and NSIS (windows only). Dataserv-client and Storjnode needs python2, psutil, py2exe / py2app, virtualenv, 7zip, Microsoft VisualC++ Compiler Package for Python 2.7
+
+```
+apt-get install git curl jq wget nodejs
+npm install -g n
+n lts
+```

@@ -78,12 +78,12 @@ for ((i=0; i < $(echo $pulls | jq ". | length"); i++)); do
         cd $repositoryname
         
         # run script as root
-        npm install --unsafe-perm
-        npm run release --unsafe-perm
+        #npm install --unsafe-perm
+        #npm run release --unsafe-perm
 
         # run script as normal user
-        #npm install
-        #npm run release
+        npm install
+        npm run release
 
         cd releases
 
@@ -143,12 +143,12 @@ for ((j=0; j < $(echo $releases | jq ". | length"); j++)); do
             cd $repositoryname
 
             # run script as root
-            npm install --unsafe-perm
-            npm run release --unsafe-perm
+            #npm install --unsafe-perm
+            #npm run release --unsafe-perm
 
             # run script as normal user
-            #npm install
-            #npm run release
+            npm install
+            npm run release
             cd releases
 
             filename=$(ls)
