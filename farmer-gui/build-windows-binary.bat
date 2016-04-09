@@ -1,7 +1,7 @@
 @echo off
 Setlocal EnableDelayedExpansion
 
-set apiurl=https://api.github.com/repos/Storj/driveshare-gui
+set apiurl=https://api.github.com/repos/Storj/farmer-gui
 
 curl -H "Accept: application/json" -H "Authorization: token !gh_token!" !apiurl! > repository.json
 

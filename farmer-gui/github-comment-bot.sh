@@ -1,6 +1,6 @@
 #!/bin/bash
 
-apiurl=https://api.github.com/repos/Storj/driveshare-gui
+apiurl=https://api.github.com/repos/Storj/farmer-gui
 
 repository=$(curl -H "Accept: application/json" -H "Authorization: token $gh_token" $apiurl)
 

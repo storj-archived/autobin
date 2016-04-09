@@ -13,7 +13,7 @@ while true; do
 
     clear
     cd "$workdir"
-    bash driveshare-gui/github-comment-bot.sh
+    bash farmer-gui/github-comment-bot.sh
 
     clear
     cd "$workdir"
@@ -21,7 +21,7 @@ while true; do
 
     clear
     cd "$workdir"
-    bash driveshare-gui/build-linux-binary.sh
+    bash farmer-gui/build-linux-binary.sh
 
     sleep 600
 done

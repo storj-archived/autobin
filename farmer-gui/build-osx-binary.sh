@@ -1,6 +1,6 @@
 #!/bin/bash
 
-apiurl=https://api.github.com/repos/Storj/driveshare-gui
+apiurl=https://api.github.com/repos/Storj/farmer-gui
 
 repository=$(curl -H "Accept: application/json" -H "Authorization: token $gh_token" $apiurl)
 
@@ -47,9 +47,9 @@ for ((i=0; i < $(echo $pulls | jq ". | length"); i++)); do
                 assetlabel=$(echo $assets | jq --raw-output ".[$k].label")
                 assetname=$(echo $assets | jq --raw-output ".[$k].name")
 
-                if [ "${assetname: -4}" = ".deb" ]; then
+                if [ "${assetname: -4}" = ".dmg" ]; then
                     assetstate=$(echo $assets | jq --raw-output ".[$k].state")
-                    if [ "$assetlabel" = "$pullsha.deb" ] && [ "$assetstate" != "new" ]; then
+                    if [ "$assetlabel" = "$pullsha.dmg" ] && [ "$assetstate" != "new" ]; then
                         assetfound=true
                     else
                         binaryurl=$(echo $assets | jq --raw-output ".[$k].url")
@@ -76,20 +76,13 @@ for ((i=0; i < $(echo $pulls | jq ". | length"); i++)); do
         echo create and upload binary $pullrepository $pullbranch
         git clone $pullrepository -b $pullbranch
         cd $repositoryname
-        
-        # run script as root
-        #npm install --unsafe-perm
-        #npm run release --unsafe-perm
-
-        # run script as normal user
         npm install
         npm run release
-
         cd releases
 
         filename=$(ls)
 
-        curl -H "Accept: application/json" -H "Content-Type: application/octet-stream" -H "Authorization: token $gh_token" --data-binary "@$filename" "$uploadurl?name=$filename&label=$pullsha.deb"
+        curl -H "Accept: application/json" -H "Content-Type: application/octet-stream" -H "Authorization: token $gh_token" --data-binary "@$filename" "$uploadurl?name=$filename&label=$pullsha.dmg"
     fi
 done
 
@@ -105,7 +98,7 @@ for ((j=0; j < $(echo $releases | jq ". | length"); j++)); do
 
             assetname=$(echo $assets | jq --raw-output ".[$k].name")
 
-            if [ "${assetname: -4}" = ".deb" ]; then
+            if [ "${assetname: -4}" = ".dmg" ]; then
                 assetstate=$(echo $assets | jq --raw-output ".[$k].state")
                 if [ "$assetstate" = "new" ]; then
                     binaryurl=$(echo $assets | jq --raw-output ".[$k].url")
@@ -117,7 +110,7 @@ for ((j=0; j < $(echo $releases | jq ". | length"); j++)); do
         done
 
         if [ $assetfound = false ]; then
-
+           
             uploadurl=$(echo $releases | jq --raw-output ".[$j].upload_url")
             uploadurl=${uploadurl//\{?name,label\}/}
 
@@ -132,7 +125,7 @@ for ((j=0; j < $(echo $releases | jq ". | length"); j++)); do
                     fi 
                 done
             fi
-                
+
             mkdir repos
             cd repos
 
@@ -141,12 +134,6 @@ for ((j=0; j < $(echo $releases | jq ". | length"); j++)); do
             echo create and upload binary $repositoryurl $targetbranch
             git clone $repositoryurl -b $targetbranch
             cd $repositoryname
-
-            # run script as root
-            #npm install --unsafe-perm
-            #npm run release --unsafe-perm
-
-            # run script as normal user
             npm install
             npm run release
             cd releases

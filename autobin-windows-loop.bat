@@ -10,7 +10,7 @@ set workdir=!cd!
 
 cd !workdir!
 cls
-call driveshare-gui\build-windows-binary.bat
+call farmer-gui\build-windows-binary.bat
 
 cd !workdir!
 cls

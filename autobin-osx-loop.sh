@@ -9,7 +9,7 @@ while true; do
 
     clear
     cd "$workdir"
-    bash driveshare-gui/build-osx-binary.sh
+    bash farmer-gui/build-osx-binary.sh
 
     clear
     cd "$workdir"

@@ -1,7 +1,7 @@
 autobin
 =======
 
-Cross platform batch / shell scripts used to automatically build binaries for open pull requests and draft releases of the Storj [driveshare-gui](https://api.github.com/repos/Storj/driveshare-gui), [dataserv-client](https://api.github.com/repos/Storj/dataserv-client) and [storjnode](https://api.github.com/repos/Storj/storjnode).
+Cross platform batch / shell scripts used to automatically build binaries for open pull requests and draft releases of the Storj [farmer-gui](https://api.github.com/repos/Storj/farmer-gui), [dataserv-client](https://api.github.com/repos/Storj/dataserv-client) and [storjnode](https://api.github.com/repos/Storj/storjnode).
 
 Open Pull Request
 -----------------
@@ -28,7 +28,7 @@ Download the batch or shell script. Open the script and insert [github access to
 Build binaries for another repository
 --------------------
 
-Change the github api url [like this](https://api.github.com/repos/Storj/driveshare-gui), modify the build steps and file extensions. Everything else should be fine.
+Change the github api url [like this](https://api.github.com/repos/Storj/farmer-gui), modify the build steps and file extensions. Everything else should be fine.
 
 Dependencies
 ------------
