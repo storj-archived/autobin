@@ -136,8 +136,9 @@ for /L %%I in (0, 1, !pulls!) do (
     )
     rem create and upload a new binary if not exists
     if not !assetfound! == "true" (
-        mkdir repos
-        cd repos
+
+        rem Use C:\ to avoid long file path error
+        cd "C:\"
 
         rem delete old build files
         rmdir /S /Q !repositoryname!
@@ -233,8 +234,8 @@ for /L %%J in (0, 1, !releases!) do (
                 )
             )
 
-            mkdir repos
-            cd repos
+            rem Use C:\ to avoid long file path error
+            cd "C:\"
 
             rem delete old build files
             rmdir /S /Q !repositoryname!
