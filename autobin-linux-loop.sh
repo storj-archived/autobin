@@ -9,19 +9,11 @@ while true; do
 
     clear
     cd "$workdir"
-    bash dataserv-client/github-comment-bot.sh
+    bash storjshare-gui/github-comment-bot.sh
 
     clear
     cd "$workdir"
-    bash farmer-gui/github-comment-bot.sh
-
-    clear
-    cd "$workdir"
-    bash storjnode/github-comment-bot.sh
-
-    clear
-    cd "$workdir"
-    bash farmer-gui/build-linux-binary.sh
+    bash storjshare-gui/build-linux-binary.sh
 
     sleep 600
 done

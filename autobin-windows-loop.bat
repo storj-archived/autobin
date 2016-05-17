@@ -10,15 +10,7 @@ set workdir=!cd!
 
 cd !workdir!
 cls
-call farmer-gui\build-windows-binary.bat
-
-cd !workdir!
-cls
-call storjnode\build-windows-binary.bat
-
-cd !workdir!
-cls
-call dataserv-client\build-windows-binary.bat
+call storjshare-gui\build-windows-binary.bat
 
 timeout /T 600
 goto start

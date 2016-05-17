@@ -9,15 +9,7 @@ while true; do
 
     clear
     cd "$workdir"
-    bash farmer-gui/build-osx-binary.sh
-
-    clear
-    cd "$workdir"
-    bash storjnode/build-osx-binary.sh
-
-    clear
-    cd "$workdir"
-    bash dataserv-client/build-osx-binary.sh
+    bash storjshare-gui/build-osx-binary.sh
 
     sleep 600
 done

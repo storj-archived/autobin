@@ -1,7 +1,7 @@
 autobin
 =======
 
-Cross platform batch / shell scripts used to automatically build binaries for open pull requests and draft releases of the Storj [farmer-gui](https://api.github.com/repos/Storj/farmer-gui), [dataserv-client](https://api.github.com/repos/Storj/dataserv-client) and [storjnode](https://api.github.com/repos/Storj/storjnode).
+Cross platform batch / shell scripts used to automatically build binaries for open pull requests and draft releases of the Storj [storjshare-gui](https://api.github.com/repos/Storj/storjshare-gui).
 
 Open Pull Request
 -----------------
@@ -28,12 +28,12 @@ Download the batch or shell script. Open the script and insert [github access to
 Build binaries for another repository
 --------------------
 
-Change the github api url [like this](https://api.github.com/repos/Storj/farmer-gui), modify the build steps and file extensions. Everything else should be fine.
+Change the github api url [like this](https://api.github.com/repos/Storj/storjshare-gui), modify the build steps and file extensions. Everything else should be fine.
 
 Dependencies
 ------------
 
-In order to run autobin you have to install git, curl, jq and the dependencies for the build steps. Driveshare-gui needs nodejs and NSIS (windows only). Dataserv-client and Storjnode needs python2, psutil, py2exe / py2app, virtualenv, 7zip, Microsoft VisualC++ Compiler Package for Python 2.7
+In order to run autobin you have to install git, curl, jq and the dependencies for the build steps. storjshare-gui needs nodejs and NSIS (windows only).
 
 ```
 apt-get install git curl jq wget nodejs fakeroot
