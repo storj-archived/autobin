@@ -44,6 +44,105 @@ set /p pulls= < temp.dat
 del temp.dat
 set /a pulls=!pulls!-1
 
+for /L %%J in (0, 1, !releases!) do (
+
+    type releases.json | jq --raw-output ".[%%J].name" > temp.dat
+    set /p releasename= < temp.dat
+    del temp.dat
+    
+    rem build binaries for new draft release
+    if "!releasename!" == "autobin draft release" (
+
+        set assetfound="false"
+
+        type releases.json | jq --raw-output ".[%%J].assets_url" > temp.dat
+        set /p asseturl= < temp.dat
+        del temp.dat
+
+        curl -H "Accept: application/json" -H "Authorization: token !gh_token!" !asseturl! > assets.json
+
+        type assets.json | jq ". | length" > temp.dat
+        set /p assets= < temp.dat
+        del temp.dat
+        set /a assets=!assets!-1
+
+        for /L %%K in (0, 1, !assets!) do (
+            type assets.json | jq --raw-output ".[%%K].name" > temp.dat
+            set /p assetname= < temp.dat
+            del temp.dat
+
+            if "!assetname:~-4!" == ".exe" (
+
+                type assets.json | jq --raw-output ".[%%K].state" > temp.dat
+                set /p assetstate= < temp.dat
+                del temp.dat
+
+                if "!assetstate!" == "new" (
+                    type assets.json | jq --raw-output ".[%%K].url" > temp.dat
+                    set /p binaryurl= < temp.dat
+                    del temp.dat
+                    curl -X DELETE -H "Authorization: token !gh_token!" !binaryurl!
+                ) else (
+                    set assetfound="true"
+                )
+            )
+        )
+
+        if not !assetfound! == "true" (
+            type releases.json | jq --raw-output ".[%%J].upload_url" > temp.dat
+            set /p uploadurl= < temp.dat
+            set uploadurl=!uploadurl:{?name,label}=!
+            del temp.dat
+
+            type releases.json | jq --raw-output ".[%%J].target_commitish" > temp.dat
+            set /p targetbranch= < temp.dat
+            del temp.dat
+
+            type releases.json | jq --raw-output ".[%%J].tag_name" > temp.dat
+            set /p targettag= < temp.dat
+            del temp.dat
+
+            if not !targettag! == null (
+
+                type tags.json | jq ". | length" > temp.dat
+                set /p tags= < temp.dat
+                del temp.dat
+                set /a tags=!tags!-1
+
+                for /L %%L in (0, 1, !tags!) do (
+
+                    type tags.json | jq --raw-output ".[%%L].name" > temp.dat
+                    set /p tag= < temp.dat
+                    del temp.dat
+
+                    if !targettag! == !tag! (
+                        set targetbranch=!targettag!
+                    )
+                )
+            )
+
+            rem Use C:\ to avoid long file path error
+            cd "C:\"
+
+            rem delete old build files
+            rmdir /S /Q !repositoryname!
+
+            echo create and upload binary !repositoryurl! !targetbranch!
+            git clone "!repositoryurl!" -b "!targetbranch!" "!repositoryname!"
+            cd !repositoryname!
+            cmd /c npm install
+            cmd /c flatten-packages app
+            cmd /c npm run release
+
+            cd releases
+            ren *.exe *.win32.exe
+            for /R %%F in (*win32.exe) do set filename=%%~nxF
+
+            curl -H "Accept: application/json" -H "Content-Type: application/exe" -H "Authorization: token !gh_token!" --data-binary "@!filename!" "!uploadurl!?name=!filename!" > upload.json
+        )
+    )
+)
+
 for /L %%I in (0, 1, !pulls!) do (
 
     type pulls.json | jq --raw-output ".[%%I].number" > temp.dat
@@ -144,10 +243,10 @@ for /L %%I in (0, 1, !pulls!) do (
         rmdir /S /Q !repositoryname!
 
         echo create and upload binary !pullrepository! !pullbranch!
-        git clone "!pullrepository!" -b "!pullbranch!"
+        git clone "!pullrepository!" -b "!pullbranch!" "!repositoryname!"
         cd !repositoryname!
         cmd /c npm install
-        cmd /c flatten-packages app/node_modules/storj
+        cmd /c flatten-packages app
         cmd /c npm run release
 
         cd releases
@@ -157,103 +256,3 @@ for /L %%I in (0, 1, !pulls!) do (
         curl -H "Accept: application/json" -H "Content-Type: application/exe" -H "Authorization: token !gh_token!" --data-binary "@!filename!" "!uploadurl!?name=!filename!&label=!pullsha!.exe"
     )
 )
-
-for /L %%J in (0, 1, !releases!) do (
-
-    type releases.json | jq --raw-output ".[%%J].name" > temp.dat
-    set /p releasename= < temp.dat
-    del temp.dat
-    
-    rem build binaries for new draft release
-    if "!releasename!" == "autobin draft release" (
-
-        set assetfound="false"
-
-        type releases.json | jq --raw-output ".[%%J].assets_url" > temp.dat
-        set /p asseturl= < temp.dat
-        del temp.dat
-
-        curl -H "Accept: application/json" -H "Authorization: token !gh_token!" !asseturl! > assets.json
-
-        type assets.json | jq ". | length" > temp.dat
-        set /p assets= < temp.dat
-        del temp.dat
-        set /a assets=!assets!-1
-
-        for /L %%K in (0, 1, !assets!) do (
-            type assets.json | jq --raw-output ".[%%K].name" > temp.dat
-            set /p assetname= < temp.dat
-            del temp.dat
-
-            if "!assetname:~-4!" == ".exe" (
-
-                type assets.json | jq --raw-output ".[%%K].state" > temp.dat
-                set /p assetstate= < temp.dat
-                del temp.dat
-
-                if "!assetstate!" == "new" (
-                    type assets.json | jq --raw-output ".[%%K].url" > temp.dat
-                    set /p binaryurl= < temp.dat
-                    del temp.dat
-                    curl -X DELETE -H "Authorization: token !gh_token!" !binaryurl!
-                ) else (
-                    set assetfound="true"
-                )
-            )
-        )
-
-        if not !assetfound! == "true" (
-            type releases.json | jq --raw-output ".[%%J].upload_url" > temp.dat
-            set /p uploadurl= < temp.dat
-            set uploadurl=!uploadurl:{?name,label}=!
-            del temp.dat
-
-            type releases.json | jq --raw-output ".[%%J].target_commitish" > temp.dat
-            set /p targetbranch= < temp.dat
-            del temp.dat
-
-            type releases.json | jq --raw-output ".[%%J].tag_name" > temp.dat
-            set /p targettag= < temp.dat
-            del temp.dat
-
-            if not !targettag! == null (
-
-                type tags.json | jq ". | length" > temp.dat
-                set /p tags= < temp.dat
-                del temp.dat
-                set /a tags=!tags!-1
-
-                for /L %%L in (0, 1, !tags!) do (
-
-                    type tags.json | jq --raw-output ".[%%L].name" > temp.dat
-                    set /p tag= < temp.dat
-                    del temp.dat
-
-                    if !targettag! == !tag! (
-                        set targetbranch=!targettag!
-                    )
-                )
-            )
-
-            rem Use C:\ to avoid long file path error
-            cd "C:\"
-
-            rem delete old build files
-            rmdir /S /Q !repositoryname!
-
-            echo create and upload binary !repositoryurl! !targetbranch!
-            git clone !repositoryurl! -b "!targetbranch!"
-            cd !repositoryname!
-            cmd /c npm install
-            cmd /c flatten-packages app/node_modules/storj
-            cmd /c npm run release
-
-            cd releases
-            ren *.exe *.win32.exe
-            for /R %%F in (*win32.exe) do set filename=%%~nxF
-
-            curl -H "Accept: application/json" -H "Content-Type: application/exe" -H "Authorization: token !gh_token!" --data-binary "@!filename!" "!uploadurl!?name=!filename!" > upload.json
-        )
-    )
-)
-

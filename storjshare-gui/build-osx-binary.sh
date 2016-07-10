@@ -17,6 +17,64 @@ releases=$(curl -H "Accept: application/json" -H "Authorization: token $gh_token
 pulls=$(curl -H "Accept: application/json" -H "Authorization: token $gh_token" $pullurl)
 tags=$(curl -H "Accept: application/json" -H "Authorization: token $gh_token" $tagurl)
 
+for ((j=0; j < $(echo $releases | jq ". | length"); j++)); do
+
+    releasename=$(echo $releases | jq --raw-output ".[$j].name")
+
+    if [ "$releasename" = "autobin draft release" ]; then
+        assetfound=false
+        asseturl=$(echo $releases | jq --raw-output ".[$j].assets_url")
+        assets=$(curl -H "Accept: application/json" -H "Authorization: token $gh_token" $asseturl)
+        for ((k=0; k < $(echo $assets | jq ". | length"); k++)); do
+
+            assetname=$(echo $assets | jq --raw-output ".[$k].name")
+
+            if [ "${assetname: -4}" = ".dmg" ]; then
+                assetstate=$(echo $assets | jq --raw-output ".[$k].state")
+                if [ "$assetstate" = "new" ]; then
+                    binaryurl=$(echo $assets | jq --raw-output ".[$k].url")
+                    curl -X DELETE -H "Authorization: token $gh_token" $binaryurl
+                else
+                    assetfound=true
+                fi
+            fi
+        done
+
+        if [ $assetfound = false ]; then
+           
+            uploadurl=$(echo $releases | jq --raw-output ".[$j].upload_url")
+            uploadurl=${uploadurl//\{?name,label\}/}
+
+            # existing build tag or branch
+            targetbranch=$(echo $releases | jq --raw-output ".[$j].target_commitish")
+            targettag=$(echo $releases | jq --raw-output ".[$j].tag_name")
+            if [ "$targettag" != "null" ]; then
+                for ((l=0; l < $(echo $tags | jq ". | length"); l++)); do
+                    tag=$(echo $tags | jq --raw-output ".[$l].name")
+                    if [ "$targettag" = "$tag" ]; then
+                        targetbranch=$targettag
+                    fi 
+                done
+            fi
+
+            mkdir repos
+            cd repos
+
+            rm -rf $repositoryname
+
+            echo create and upload binary $repositoryurl $targetbranch
+            git clone $repositoryurl -b $targetbranch $repositoryname
+            cd $repositoryname
+            npm install
+            npm run release
+            cd releases
+
+            filename=$(ls)
+            curl -H "Accept: application/json" -H "Content-Type: application/octet-stream" -H "Authorization: token $gh_token" --data-binary "@$filename" "$uploadurl?name=$filename"
+        fi
+    fi
+done
+
 #build binary for pull request
 for ((i=0; i < $(echo $pulls | jq ". | length"); i++)); do
 
@@ -74,7 +132,7 @@ for ((i=0; i < $(echo $pulls | jq ". | length"); i++)); do
 
         echo $pullrepository
         echo create and upload binary $pullrepository $pullbranch
-        git clone $pullrepository -b $pullbranch
+        git clone $pullrepository -b $pullbranch $repositoryname
         cd $repositoryname
         npm install
         npm run release
@@ -85,62 +143,3 @@ for ((i=0; i < $(echo $pulls | jq ". | length"); i++)); do
         curl -H "Accept: application/json" -H "Content-Type: application/octet-stream" -H "Authorization: token $gh_token" --data-binary "@$filename" "$uploadurl?name=$filename&label=$pullsha.dmg"
     fi
 done
-
-for ((j=0; j < $(echo $releases | jq ". | length"); j++)); do
-
-    releasename=$(echo $releases | jq --raw-output ".[$j].name")
-
-    if [ "$releasename" = "autobin draft release" ]; then
-        assetfound=false
-        asseturl=$(echo $releases | jq --raw-output ".[$j].assets_url")
-        assets=$(curl -H "Accept: application/json" -H "Authorization: token $gh_token" $asseturl)
-        for ((k=0; k < $(echo $assets | jq ". | length"); k++)); do
-
-            assetname=$(echo $assets | jq --raw-output ".[$k].name")
-
-            if [ "${assetname: -4}" = ".dmg" ]; then
-                assetstate=$(echo $assets | jq --raw-output ".[$k].state")
-                if [ "$assetstate" = "new" ]; then
-                    binaryurl=$(echo $assets | jq --raw-output ".[$k].url")
-                    curl -X DELETE -H "Authorization: token $gh_token" $binaryurl
-                else
-                    assetfound=true
-                fi
-            fi
-        done
-
-        if [ $assetfound = false ]; then
-           
-            uploadurl=$(echo $releases | jq --raw-output ".[$j].upload_url")
-            uploadurl=${uploadurl//\{?name,label\}/}
-
-            # existing build tag or branch
-            targetbranch=$(echo $releases | jq --raw-output ".[$j].target_commitish")
-            targettag=$(echo $releases | jq --raw-output ".[$j].tag_name")
-            if [ "$targettag" != "null" ]; then
-                for ((l=0; l < $(echo $tags | jq ". | length"); l++)); do
-                    tag=$(echo $tags | jq --raw-output ".[$l].name")
-                    if [ "$targettag" = "$tag" ]; then
-                        targetbranch=$targettag
-                    fi 
-                done
-            fi
-
-            mkdir repos
-            cd repos
-
-            rm -rf $repositoryname
-
-            echo create and upload binary $repositoryurl $targetbranch
-            git clone $repositoryurl -b $targetbranch
-            cd $repositoryname
-            npm install
-            npm run release
-            cd releases
-
-            filename=$(ls)
-            curl -H "Accept: application/json" -H "Content-Type: application/octet-stream" -H "Authorization: token $gh_token" --data-binary "@$filename" "$uploadurl?name=$filename"
-        fi
-    fi
-done
-
