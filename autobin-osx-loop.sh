@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export gh_token=insert your token here
+#export gh_token=insert your token here
 
 workdir="${pwd}"
 

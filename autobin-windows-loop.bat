@@ -2,9 +2,9 @@
 rem set some variables
 Setlocal EnableDelayedExpansion
 
-set gh_token=insert your token here
-set CERT_FILE=insert your code cert file here
-set CERT_PASSWORD=insert your cert password here
+rem setx gh_token
+rem setx CERT_FILE
+rem setx CERT_PASSWORD
 
 set workdir=!cd!
 
