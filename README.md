@@ -28,7 +28,7 @@ Change the github api url [like this](https://api.github.com/repos/Storj/storjsh
 
 ### Dependencies
 
-In order to run autobin you have to install git, curl, jq and the dependencies for the build steps. storjshare-gui needs nodejs and NSIS, flatten-packages (windows only).
+In order to run autobin you have to install git, curl, jq and the dependencies for the build steps. storjshare-gui needs nodejs and NSIS, npm@3 (windows only because of file path limits).
 
 ```
 apt-get install git curl jq wget nodejs fakeroot

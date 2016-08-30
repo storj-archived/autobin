@@ -131,7 +131,6 @@ for /L %%J in (0, 1, !releases!) do (
             git clone "!repositoryurl!" -b "!targetbranch!" "!repositoryname!"
             cd !repositoryname!
             cmd /c npm install
-            cmd /c flatten-packages app
             cmd /c npm run release
 
             cd releases
@@ -246,7 +245,6 @@ for /L %%I in (0, 1, !pulls!) do (
         git clone "!pullrepository!" -b "!pullbranch!" "!repositoryname!"
         cd !repositoryname!
         cmd /c npm install
-        cmd /c flatten-packages app
         cmd /c npm run release
 
         cd releases
