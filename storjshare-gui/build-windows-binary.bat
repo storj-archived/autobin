@@ -137,7 +137,8 @@ for /L %%J in (0, 1, !releases!) do (
             ren *.exe *!extension!.exe
             for /R %%F in (*!extension!.exe) do set filename=%%~nxF
 
-            curl -H "Accept: application/json" -H "Content-Type: application/exe" -H "Authorization: token !gh_token!" --data-binary "@!filename!" "!uploadurl!?name=!filename!" > upload.json
+            curl -H "Accept: application/json" -H "Content-Type: application/exe" -H "Authorization: token !gh_token!" --data-binary "@!filename!" "!uploadurl!?name=!filename!"
+            cd !workdir!
         )
     )
 )
@@ -252,5 +253,6 @@ for /L %%I in (0, 1, !pulls!) do (
         for /R %%F in (*!extension!.exe) do set filename=%%~nxF
 
         curl -H "Accept: application/json" -H "Content-Type: application/exe" -H "Authorization: token !gh_token!" --data-binary "@!filename!" "!uploadurl!?name=!filename!&label=!pullsha!!extension!.exe"
+        cd !workdir!
     )
 )
