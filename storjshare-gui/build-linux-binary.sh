@@ -29,7 +29,7 @@ for ((j=0; j < $(echo $releases | jq ". | length"); j++)); do
 
             assetname=$(echo $assets | jq --raw-output ".[$k].name")
 
-            if [ "${assetname: -4}" = ".deb" ]; then
+            if [ "${assetname: -10}" = ".amd64.deb" ]; then
                 assetstate=$(echo $assets | jq --raw-output ".[$k].state")
                 if [ "$assetstate" = "new" ]; then
                     binaryurl=$(echo $assets | jq --raw-output ".[$k].url")
@@ -114,9 +114,9 @@ for ((i=0; i < $(echo $pulls | jq ". | length"); i++)); do
                 assetlabel=$(echo $assets | jq --raw-output ".[$k].label")
                 assetname=$(echo $assets | jq --raw-output ".[$k].name")
 
-                if [ "${assetname: -4}" = ".deb" ]; then
+                if [ "${assetname: -10}" = ".amd64.deb" ]; then
                     assetstate=$(echo $assets | jq --raw-output ".[$k].state")
-                    if [ "$assetlabel" = "$pullsha.deb" ] && [ "$assetstate" != "new" ]; then
+                    if [ "$assetlabel" = "$pullsha.amd64.deb" ] && [ "$assetstate" != "new" ]; then
                         assetfound=true
                     else
                         binaryurl=$(echo $assets | jq --raw-output ".[$k].url")
@@ -156,6 +156,6 @@ for ((i=0; i < $(echo $pulls | jq ". | length"); i++)); do
 
         filename=$(ls)
 
-        curl -H "Accept: application/json" -H "Content-Type: application/octet-stream" -H "Authorization: token $gh_token" --data-binary "@$filename" "$uploadurl?name=$filename&label=$pullsha.deb"
+        curl -H "Accept: application/json" -H "Content-Type: application/octet-stream" -H "Authorization: token $gh_token" --data-binary "@$filename" "$uploadurl?name=$filename&label=$pullsha.amd64.deb"
     fi
 done

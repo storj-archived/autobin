@@ -36,7 +36,7 @@ for ((i=0; i < $(echo $pulls | jq ". | length"); i++)); do
                 assetname=$(echo $releases | jq --raw-output ".[$j].assets[$k].name")
                 downloadurl=$(echo $releases | jq --raw-output ".[$j].assets[$k].browser_download_url")
 
-                if [ "${assetlabel:0:-4}" = "$pullsha" ]; then
+                if [ "${assetlabel:0:-10}" = "$pullsha" ]; then
                     autobincomment="$autobincomment\r\n[$assetname]($downloadurl)"
 
                     # calculate the time difference between binary upload and now
