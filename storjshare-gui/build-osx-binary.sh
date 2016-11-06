@@ -83,7 +83,7 @@ for ((i=0; i < $(echo $pulls | jq ". | length"); i++)); do
     pullrepository=$(echo $pulls | jq --raw-output ".[$i].head.repo.html_url")
     pullbranch=$(echo $pulls | jq --raw-output ".[$i].head.ref")
 
-    rem refresh github releases (3 build script are running at the same time. Only one should create the new pull request release.)
+    # refresh github releases (3 build script are running at the same time. Only one should create the new pull request release.)
     releases=$(curl -H "Accept: application/json" -H "Authorization: token $gh_token" $releasesurl)
 
     releasefound=false
