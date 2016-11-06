@@ -51,7 +51,7 @@ for ((i=0; i < $(echo $pulls | jq ". | length"); i++)); do
         fi
     done
 
-    if [ "$(printf "$autobincomment" | wc -l)" -eq "4" ]; then
+    if [ "$(printf "$autobincomment" | wc -l)" -eq "5" ]; then
         # all binaries uploaded. no reason to wait
         waitforbinaries=false
     elif [ "$(printf "$autobincomment" | wc -l)" -eq "1" ]; then
