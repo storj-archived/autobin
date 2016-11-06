@@ -161,6 +161,15 @@ for /L %%I in (0, 1, !pulls!) do (
     set /p pullbranch= < temp.dat
     del temp.dat
 
+    rem refresh github releases (3 build script are running at the same time. Only one should create the new pull request release.)
+    curl -H "Accept: application/json" -H "Authorization: token !gh_token!" !releasesurl! > releases.json
+
+    rem counting releases
+    type releases.json | jq ". | length" > temp.dat
+    set /p releases= < temp.dat
+    del temp.dat
+    set /a releases=!releases!-1
+
     set releasefound="false"
     set assetfound="false"
     for /L %%J in (0, 1, !releases!) do (
