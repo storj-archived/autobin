@@ -71,7 +71,7 @@ for /L %%J in (0, 1, !releases!) do (
             set /p assetname= < temp.dat
             del temp.dat
 
-            if "!assetname:~-4!" == ".exe" (
+            if "!assetname:~-10!" == "!extension!.exe" (
 
                 type assets.json | jq --raw-output ".[%%K].state" > temp.dat
                 set /p assetstate= < temp.dat
@@ -134,8 +134,8 @@ for /L %%J in (0, 1, !releases!) do (
             cmd /c npm run release
 
             cd releases
-            ren *.exe *.win32.exe
-            for /R %%F in (*win32.exe) do set filename=%%~nxF
+            ren *.exe *!extension!.exe
+            for /R %%F in (*!extension!.exe) do set filename=%%~nxF
 
             curl -H "Accept: application/json" -H "Content-Type: application/exe" -H "Authorization: token !gh_token!" --data-binary "@!filename!" "!uploadurl!?name=!filename!" > upload.json
         )
@@ -198,13 +198,13 @@ for /L %%I in (0, 1, !pulls!) do (
                 set /p assetname= < temp.dat
                 del temp.dat
 
-                if "!assetname:~-4!" == ".exe" (
+                if "!assetname:~-10!" == "!extension!.exe" (
 
                     type assets.json | jq --raw-output ".[%%K].state" > temp.dat
                     set /p assetstate= < temp.dat
                     del temp.dat
 
-                    if !assetlabel! == !pullsha!.exe (
+                    if !assetlabel! == !pullsha!!extension!.exe (
                         if not "!assetstate!" == "new" (
                             set assetfound="true"
                         ) else (
@@ -248,9 +248,9 @@ for /L %%I in (0, 1, !pulls!) do (
         cmd /c npm run release
 
         cd releases
-        ren *.exe *.win32.exe
-        for /R %%F in (*win32.exe) do set filename=%%~nxF
+        ren *.exe *!extension!.exe
+        for /R %%F in (*!extension!.exe) do set filename=%%~nxF
 
-        curl -H "Accept: application/json" -H "Content-Type: application/exe" -H "Authorization: token !gh_token!" --data-binary "@!filename!" "!uploadurl!?name=!filename!&label=!pullsha!.exe"
+        curl -H "Accept: application/json" -H "Content-Type: application/exe" -H "Authorization: token !gh_token!" --data-binary "@!filename!" "!uploadurl!?name=!filename!&label=!pullsha!!extension!.exe"
     )
 )
