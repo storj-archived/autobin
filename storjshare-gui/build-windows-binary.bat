@@ -149,7 +149,7 @@ for /L %%I in (0, 1, !pulls!) do (
     set /p pullnumber= < temp.dat
     del temp.dat
 
-    type pulls.json | jq --raw-output ".[%%I].merge_commit_sha" > temp.dat
+    type pulls.json | jq --raw-output ".[%%I].head.sha" > temp.dat
     set /p pullsha= < temp.dat
     del temp.dat
 

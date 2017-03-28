@@ -18,7 +18,7 @@ pulls=$(curl -H "Accept: application/json" -H "Authorization: token $gh_token" $
 for ((i=0; i < $(echo $pulls | jq ". | length"); i++)); do
 
     pullnumber=$(echo $pulls | jq --raw-output ".[$i].number")
-    pullsha=$(echo $pulls | jq --raw-output ".[$i].merge_commit_sha")
+    pullsha=$(echo $pulls | jq --raw-output ".[$i].head.sha")
     commenturl=$(echo $pulls | jq --raw-output ".[$i]._links.comments.href")
     comments=$(curl -H "Accept: application/json" -H "Authorization: token $gh_token" $commenturl)
     autobincomment="[autobin](https://github.com/Storj/autobin) binaries (only available for team members)\r\nlast commit: $pullsha"

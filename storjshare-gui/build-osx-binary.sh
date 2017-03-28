@@ -79,7 +79,7 @@ done
 for ((i=0; i < $(echo $pulls | jq ". | length"); i++)); do
 
     pullnumber=$(echo $pulls | jq --raw-output ".[$i].number")
-    pullsha=$(echo $pulls | jq --raw-output ".[$i].merge_commit_sha")
+    pullsha=$(echo $pulls | jq --raw-output ".[$i].head.sha")
     pullrepository=$(echo $pulls | jq --raw-output ".[$i].head.repo.html_url")
     pullbranch=$(echo $pulls | jq --raw-output ".[$i].head.ref")
 
