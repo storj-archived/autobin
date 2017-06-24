@@ -4,7 +4,7 @@ chcp 65001
 rem set some variables
 Setlocal EnableDelayedExpansion
 
-rem setx gh_token
+rem setx GH_TOKEN
 rem setx CERT_FILE
 rem setx CERT_PASSWORD
 

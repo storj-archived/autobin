@@ -3,7 +3,7 @@ Setlocal EnableDelayedExpansion
 
 set apiurl=https://api.github.com/repos/Storj/storjshare-gui
 
-curl -H "Accept: application/json" -H "Authorization: token !gh_token!" !apiurl! > repository.json
+curl -H "Accept: application/json" -H "Authorization: token !GH_TOKEN!" !apiurl! > repository.json
 
 type repository.json | jq --raw-output ".name" > temp.dat
 set /p repositoryname= < temp.dat
@@ -28,9 +28,9 @@ set /p tagurl= < temp.dat
 del temp.dat
 
 rem get releases and pull requests from github
-curl -H "Accept: application/json" -H "Authorization: token !gh_token!" !releasesurl! > releases.json
-curl -H "Accept: application/json" -H "Authorization: token !gh_token!" !pullurl! > pulls.json
-curl -H "Accept: application/json" -H "Authorization: token !gh_token!" !tagurl! > tags.json
+curl -H "Accept: application/json" -H "Authorization: token !GH_TOKEN!" !releasesurl! > releases.json
+curl -H "Accept: application/json" -H "Authorization: token !GH_TOKEN!" !pullurl! > pulls.json
+curl -H "Accept: application/json" -H "Authorization: token !GH_TOKEN!" !tagurl! > tags.json
 
 rem counting releases
 type releases.json | jq ". | length" > temp.dat
@@ -59,7 +59,7 @@ for /L %%J in (0, 1, !releases!) do (
         set /p asseturl= < temp.dat
         del temp.dat
 
-        curl -H "Accept: application/json" -H "Authorization: token !gh_token!" !asseturl! > assets.json
+        curl -H "Accept: application/json" -H "Authorization: token !GH_TOKEN!" !asseturl! > assets.json
 
         type assets.json | jq ". | length" > temp.dat
         set /p assets= < temp.dat
@@ -81,7 +81,7 @@ for /L %%J in (0, 1, !releases!) do (
                     type assets.json | jq --raw-output ".[%%K].url" > temp.dat
                     set /p binaryurl= < temp.dat
                     del temp.dat
-                    curl -X DELETE -H "Authorization: token !gh_token!" !binaryurl!
+                    curl -X DELETE -H "Authorization: token !GH_TOKEN!" !binaryurl!
                 ) else (
                     set assetfound="true"
                 )
@@ -137,7 +137,7 @@ for /L %%J in (0, 1, !releases!) do (
             ren *.exe *!extension!.exe
             for /R %%F in (*!extension!.exe) do set filename=%%~nxF
 
-            curl -H "Accept: application/json" -H "Content-Type: application/exe" -H "Authorization: token !gh_token!" --data-binary "@!filename!" "!uploadurl!?name=!filename!"
+            curl -H "Accept: application/json" -H "Content-Type: application/exe" -H "Authorization: token !GH_TOKEN!" --data-binary "@!filename!" "!uploadurl!?name=!filename!"
             cd !workdir!
         )
     )
@@ -162,7 +162,7 @@ for /L %%I in (0, 1, !pulls!) do (
     del temp.dat
 
     rem refresh github releases (3 build script are running at the same time. Only one should create the new pull request release.)
-    curl -H "Accept: application/json" -H "Authorization: token !gh_token!" !releasesurl! > releases.json
+    curl -H "Accept: application/json" -H "Authorization: token !GH_TOKEN!" !releasesurl! > releases.json
 
     rem counting releases
     type releases.json | jq ". | length" > temp.dat
@@ -192,7 +192,7 @@ for /L %%I in (0, 1, !pulls!) do (
             set /p asseturl= < temp.dat
             del temp.dat
 
-            curl -H "Accept: application/json" -H "Authorization: token !gh_token!" !asseturl! > assets.json
+            curl -H "Accept: application/json" -H "Authorization: token !GH_TOKEN!" !asseturl! > assets.json
 
             type assets.json | jq ". | length" > temp.dat
             set /p assets= < temp.dat
@@ -221,13 +221,13 @@ for /L %%I in (0, 1, !pulls!) do (
                             type assets.json | jq --raw-output ".[%%K].url" > temp.dat
                             set /p binaryurl= < temp.dat
                             del temp.dat
-                            curl -X DELETE -H "Authorization: token !gh_token!" !binaryurl!
+                            curl -X DELETE -H "Authorization: token !GH_TOKEN!" !binaryurl!
                         )
                     ) else (
                         type assets.json | jq --raw-output ".[%%K].url" > temp.dat
                         set /p binaryurl= < temp.dat
                         del temp.dat
-                        curl -X DELETE -H "Authorization: token !gh_token!" !binaryurl!
+                        curl -X DELETE -H "Authorization: token !GH_TOKEN!" !binaryurl!
                     )
                 )
             )
@@ -236,7 +236,7 @@ for /L %%I in (0, 1, !pulls!) do (
     rem create new release if not exists
     if not !releasefound! == "true" (
         echo create release autobin pull request !pullnumber!
-        curl -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: token !gh_token!" -X POST -d "{\"tag_name\":\"\",\"name\":\"autobin pull request !pullnumber!\",\"draft\":true}" !releasesurl! | jq --raw-output ".upload_url" > temp.dat
+        curl -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: token !GH_TOKEN!" -X POST -d "{\"tag_name\":\"\",\"name\":\"autobin pull request !pullnumber!\",\"draft\":true}" !releasesurl! | jq --raw-output ".upload_url" > temp.dat
         set /p uploadurl= < temp.dat
         set uploadurl=!uploadurl:{?name,label}=!
         del temp.dat
@@ -261,7 +261,7 @@ for /L %%I in (0, 1, !pulls!) do (
         ren *.exe *!extension!.exe
         for /R %%F in (*!extension!.exe) do set filename=%%~nxF
 
-        curl -H "Accept: application/json" -H "Content-Type: application/exe" -H "Authorization: token !gh_token!" --data-binary "@!filename!" "!uploadurl!?name=!filename!&label=!pullsha!!extension!.exe"
+        curl -H "Accept: application/json" -H "Content-Type: application/exe" -H "Authorization: token !GH_TOKEN!" --data-binary "@!filename!" "!uploadurl!?name=!filename!&label=!pullsha!!extension!.exe"
         cd !workdir!
     )
 )

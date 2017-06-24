@@ -2,7 +2,7 @@
 
 apiurl=https://api.github.com/repos/Storj/storjshare-gui
 
-repository=$(curl -H "Accept: application/json" -H "Authorization: token $gh_token" $apiurl)
+repository=$(curl -H "Accept: application/json" -H "Authorization: token $GH_TOKEN" $apiurl)
 
 repositoryurl=$(echo $repository | jq --raw-output ".html_url")
 releasesurl=$(echo $repository | jq --raw-output ".releases_url")
@@ -11,8 +11,8 @@ pullurl=$(echo $repository | jq --raw-output ".pulls_url")
 pullurl=${pullurl//\{\/number\}/}
 
 #get releases and pull requests from github
-releases=$(curl -H "Accept: application/json" -H "Authorization: token $gh_token" $releasesurl)
-pulls=$(curl -H "Accept: application/json" -H "Authorization: token $gh_token" $pullurl)
+releases=$(curl -H "Accept: application/json" -H "Authorization: token $GH_TOKEN" $releasesurl)
+pulls=$(curl -H "Accept: application/json" -H "Authorization: token $GH_TOKEN" $pullurl)
 
 #generate github comments for pull request
 for ((i=0; i < $(echo $pulls | jq ". | length"); i++)); do
@@ -20,7 +20,7 @@ for ((i=0; i < $(echo $pulls | jq ". | length"); i++)); do
     pullnumber=$(echo $pulls | jq --raw-output ".[$i].number")
     pullsha=$(echo $pulls | jq --raw-output ".[$i].head.sha")
     commenturl=$(echo $pulls | jq --raw-output ".[$i]._links.comments.href")
-    comments=$(curl -H "Accept: application/json" -H "Authorization: token $gh_token" $commenturl)
+    comments=$(curl -H "Accept: application/json" -H "Authorization: token $GH_TOKEN" $commenturl)
     autobincomment="[autobin](https://github.com/Storj/autobin) binaries (only available for team members)\r\nlast commit: $pullsha"
 
     waitforbinaries=false
@@ -71,10 +71,10 @@ for ((i=0; i < $(echo $pulls | jq ". | length"); i++)); do
             if [ "$(printf "$comment" | head -2)" = "$(printf "\"$autobincomment\"" | head -2)" ]; then
                 echo update comment
                 commentfound=true
-                curl -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: token $gh_token" -X PATCH -d "{\"body\":\"$autobincomment\"}" $commenturl
+                curl -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: token $GH_TOKEN" -X PATCH -d "{\"body\":\"$autobincomment\"}" $commenturl
             else
                 echo delete to old comment
-                curl -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: token $gh_token" -X DELETE $commenturl
+                curl -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: token $GH_TOKEN" -X DELETE $commenturl
             fi
         fi
     done
@@ -82,7 +82,7 @@ for ((i=0; i < $(echo $pulls | jq ". | length"); i++)); do
     if [ $commentfound = false ] && [ $waitforbinaries = false ]; then
         echo create a new comment
         commenturl=$(echo $pulls | jq --raw-output ".[$i]._links.comments.href")
-        curl -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: token $gh_token" -X POST -d "{\"body\":\"$autobincomment\"}" $commenturl
+        curl -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: token $GH_TOKEN" -X POST -d "{\"body\":\"$autobincomment\"}" $commenturl
     fi
 done
 
@@ -94,10 +94,10 @@ for ((j=0; j < $(echo $releases | jq ". | length"); j++)); do
     if [ "${releasename:0:21}" = "autobin pull request " ]; then
         pullnumber=${releasename:21}
 
-        pullstate=$(curl -H "Accept: application/json" -H "Authorization: token $gh_token" $pullurl/$pullnumber | jq --raw-output ".state")
+        pullstate=$(curl -H "Accept: application/json" -H "Authorization: token $GH_TOKEN" $pullurl/$pullnumber | jq --raw-output ".state")
         if [ "$pullstate" == "closed" ]; then
             releaseid=$(echo $releases | jq --raw-output ".[$j].id")
-            curl -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: token $gh_token" -X DELETE $releasesurl/$releaseid
+            curl -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: token $GH_TOKEN" -X DELETE $releasesurl/$releaseid
         fi
     fi
 done

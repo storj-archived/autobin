@@ -20,7 +20,7 @@ Rename the release to detach the build scripts. There you have the new release r
 Setup
 =====
 
-Download the batch or shell script. Set environment variables Cert_File, Cert_Password (windows only)  and gh_token [github access token](https://github.com/settings/tokens) (repo privilage needed). 
+Download the batch or shell script. Set environment variables CERT_FILE, CERT_PASSWORD (windows only)  and GH_TOKEN [github access token](https://github.com/settings/tokens) (repo privilage needed). 
 
 ### Build binaries for another repository
 

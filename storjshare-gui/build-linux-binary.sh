@@ -2,7 +2,7 @@
 
 apiurl=https://api.github.com/repos/Storj/storjshare-gui
 
-repository=$(curl -H "Accept: application/json" -H "Authorization: token $gh_token" $apiurl)
+repository=$(curl -H "Accept: application/json" -H "Authorization: token $GH_TOKEN" $apiurl)
 
 repositoryname=$(echo $repository | jq --raw-output ".name")
 repositoryurl=$(echo $repository | jq --raw-output ".html_url")
@@ -13,9 +13,9 @@ pullurl=${pullurl//\{\/number\}/}
 tagurl=$(echo $repository | jq --raw-output ".tags_url")
 
 #get releases and pull requests from github
-releases=$(curl -H "Accept: application/json" -H "Authorization: token $gh_token" $releasesurl)
-pulls=$(curl -H "Accept: application/json" -H "Authorization: token $gh_token" $pullurl)
-tags=$(curl -H "Accept: application/json" -H "Authorization: token $gh_token" $tagurl)
+releases=$(curl -H "Accept: application/json" -H "Authorization: token $GH_TOKEN" $releasesurl)
+pulls=$(curl -H "Accept: application/json" -H "Authorization: token $GH_TOKEN" $pullurl)
+tags=$(curl -H "Accept: application/json" -H "Authorization: token $GH_TOKEN" $tagurl)
 
 for ((j=0; j < $(echo $releases | jq ". | length"); j++)); do
 
@@ -24,7 +24,7 @@ for ((j=0; j < $(echo $releases | jq ". | length"); j++)); do
     if [ "$releasename" = "autobin draft release" ]; then
         assetfound=false
         asseturl=$(echo $releases | jq --raw-output ".[$j].assets_url")
-        assets=$(curl -H "Accept: application/json" -H "Authorization: token $gh_token" $asseturl)
+        assets=$(curl -H "Accept: application/json" -H "Authorization: token $GH_TOKEN" $asseturl)
         for ((k=0; k < $(echo $assets | jq ". | length"); k++)); do
 
             assetname=$(echo $assets | jq --raw-output ".[$k].name")
@@ -33,7 +33,7 @@ for ((j=0; j < $(echo $releases | jq ". | length"); j++)); do
                 assetstate=$(echo $assets | jq --raw-output ".[$k].state")
                 if [ "$assetstate" = "new" ]; then
                     binaryurl=$(echo $assets | jq --raw-output ".[$k].url")
-                    curl -X DELETE -H "Authorization: token $gh_token" $binaryurl
+                    curl -X DELETE -H "Authorization: token $GH_TOKEN" $binaryurl
                 else
                     assetfound=true
                 fi
@@ -76,7 +76,7 @@ for ((j=0; j < $(echo $releases | jq ". | length"); j++)); do
             cd releases
 
             filename=$(ls)
-            curl -H "Accept: application/json" -H "Content-Type: application/octet-stream" -H "Authorization: token $gh_token" --data-binary "@$filename" "$uploadurl?name=$filename"
+            curl -H "Accept: application/json" -H "Content-Type: application/octet-stream" -H "Authorization: token $GH_TOKEN" --data-binary "@$filename" "$uploadurl?name=$filename"
         fi
     fi
 done
@@ -90,7 +90,7 @@ for ((i=0; i < $(echo $pulls | jq ". | length"); i++)); do
     pullbranch=$(echo $pulls | jq --raw-output ".[$i].head.ref")
 
     # refresh github releases (3 build script are running at the same time. Only one should create the new pull request release.)
-    releases=$(curl -H "Accept: application/json" -H "Authorization: token $gh_token" $releasesurl)
+    releases=$(curl -H "Accept: application/json" -H "Authorization: token $GH_TOKEN" $releasesurl)
 
     releasefound=false
     assetfound=false
@@ -107,7 +107,7 @@ for ((i=0; i < $(echo $pulls | jq ". | length"); i++)); do
             uploadurl=${uploadurl//\{?name,label\}/}
 
             asseturl=$(echo $releases | jq --raw-output ".[$j].assets_url")
-            assets=$(curl -H "Accept: application/json" -H "Authorization: token $gh_token" $asseturl)
+            assets=$(curl -H "Accept: application/json" -H "Authorization: token $GH_TOKEN" $asseturl)
 
             for ((k=0; k < $(echo $assets | jq ". | length"); k++)); do
 
@@ -120,7 +120,7 @@ for ((i=0; i < $(echo $pulls | jq ". | length"); i++)); do
                         assetfound=true
                     else
                         binaryurl=$(echo $assets | jq --raw-output ".[$k].url")
-                        curl -X DELETE -H "Authorization: token $gh_token" $binaryurl
+                        curl -X DELETE -H "Authorization: token $GH_TOKEN" $binaryurl
                     fi
                 fi
             done
@@ -129,7 +129,7 @@ for ((i=0; i < $(echo $pulls | jq ". | length"); i++)); do
 
     if [ $releasefound = false ]; then
         echo create release autobin pull request $pullnumber
-        uploadurl=$(curl -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: token $gh_token" -X POST -d "{\"tag_name\":\"\",\"name\":\"autobin pull request $pullnumber\",\"draft\":true}" $releasesurl | jq --raw-output ".upload_url")
+        uploadurl=$(curl -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: token $GH_TOKEN" -X POST -d "{\"tag_name\":\"\",\"name\":\"autobin pull request $pullnumber\",\"draft\":true}" $releasesurl | jq --raw-output ".upload_url")
         uploadurl=${uploadurl//\{?name,label\}/}
     fi
 
@@ -156,6 +156,6 @@ for ((i=0; i < $(echo $pulls | jq ". | length"); i++)); do
 
         filename=$(ls)
 
-        curl -H "Accept: application/json" -H "Content-Type: application/octet-stream" -H "Authorization: token $gh_token" --data-binary "@$filename" "$uploadurl?name=$filename&label=$pullsha.amd64.deb"
+        curl -H "Accept: application/json" -H "Content-Type: application/octet-stream" -H "Authorization: token $GH_TOKEN" --data-binary "@$filename" "$uploadurl?name=$filename&label=$pullsha.amd64.deb"
     fi
 done
