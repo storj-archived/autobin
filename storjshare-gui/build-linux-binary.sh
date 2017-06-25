@@ -1,5 +1,7 @@
 #!/bin/bash
 
+workdir="$(pwd)"
+arch=$(dpkg --print-architecture)
 apiurl=https://api.github.com/repos/Storj/storjshare-gui
 
 repository=$(curl -H "Accept: application/json" -H "Authorization: token $GH_TOKEN" $apiurl)
@@ -29,7 +31,7 @@ for ((j=0; j < $(echo $releases | jq ". | length"); j++)); do
 
             assetname=$(echo $assets | jq --raw-output ".[$k].name")
 
-            if [ "${assetname: -10}" = ".amd64.deb" ]; then
+            if [ "${assetname: -10}" = ".$arch.deb" ]; then
                 assetstate=$(echo $assets | jq --raw-output ".[$k].state")
                 if [ "$assetstate" = "new" ]; then
                     binaryurl=$(echo $assets | jq --raw-output ".[$k].url")
@@ -57,6 +59,7 @@ for ((j=0; j < $(echo $releases | jq ". | length"); j++)); do
                 done
             fi
                 
+            cd "$workdir"
             mkdir repos
             cd repos
 
@@ -77,6 +80,7 @@ for ((j=0; j < $(echo $releases | jq ". | length"); j++)); do
 
             filename=$(ls)
             curl -H "Accept: application/json" -H "Content-Type: application/octet-stream" -H "Authorization: token $GH_TOKEN" --data-binary "@$filename" "$uploadurl?name=$filename"
+            cd "$workdir"
         fi
     fi
 done
@@ -114,9 +118,9 @@ for ((i=0; i < $(echo $pulls | jq ". | length"); i++)); do
                 assetlabel=$(echo $assets | jq --raw-output ".[$k].label")
                 assetname=$(echo $assets | jq --raw-output ".[$k].name")
 
-                if [ "${assetname: -10}" = ".amd64.deb" ]; then
+                if [ "${assetname: -10}" = ".$arch.deb" ]; then
                     assetstate=$(echo $assets | jq --raw-output ".[$k].state")
-                    if [ "$assetlabel" = "$pullsha.amd64.deb" ] && [ "$assetstate" != "new" ]; then
+                    if [ "$assetlabel" = "$pullsha.$arch.deb" ] && [ "$assetstate" != "new" ]; then
                         assetfound=true
                     else
                         binaryurl=$(echo $assets | jq --raw-output ".[$k].url")
@@ -134,6 +138,7 @@ for ((i=0; i < $(echo $pulls | jq ". | length"); i++)); do
     fi
 
     if [ $assetfound = false ]; then
+        cd "$workdir"
         mkdir repos
         cd repos
 
@@ -156,6 +161,7 @@ for ((i=0; i < $(echo $pulls | jq ". | length"); i++)); do
 
         filename=$(ls)
 
-        curl -H "Accept: application/json" -H "Content-Type: application/octet-stream" -H "Authorization: token $GH_TOKEN" --data-binary "@$filename" "$uploadurl?name=$filename&label=$pullsha.amd64.deb"
+        curl -H "Accept: application/json" -H "Content-Type: application/octet-stream" -H "Authorization: token $GH_TOKEN" --data-binary "@$filename" "$uploadurl?name=$filename&label=$pullsha.$arch.deb"
+        cd "$workdir"
     fi
 done

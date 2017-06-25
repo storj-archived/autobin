@@ -1,5 +1,6 @@
 #!/bin/bash
 
+workdir="$(pwd)"
 apiurl=https://api.github.com/repos/Storj/storjshare-gui
 
 repository=$(curl -H "Accept: application/json" -H "Authorization: token $GH_TOKEN" $apiurl)
@@ -57,6 +58,7 @@ for ((j=0; j < $(echo $releases | jq ". | length"); j++)); do
                 done
             fi
 
+            cd "$workdir"
             mkdir repos
             cd repos
 
@@ -71,6 +73,7 @@ for ((j=0; j < $(echo $releases | jq ". | length"); j++)); do
 
             filename=$(ls)
             curl -H "Accept: application/json" -H "Content-Type: application/octet-stream" -H "Authorization: token $GH_TOKEN" --data-binary "@$filename" "$uploadurl?name=$filename"
+            cd "$workdir"
         fi
     fi
 done
@@ -128,6 +131,7 @@ for ((i=0; i < $(echo $pulls | jq ". | length"); i++)); do
     fi
 
     if [ $assetfound = false ]; then
+        cd "$workdir"
         mkdir repos
         cd repos
 
@@ -144,5 +148,6 @@ for ((i=0; i < $(echo $pulls | jq ". | length"); i++)); do
         filename=$(ls)
 
         curl -H "Accept: application/json" -H "Content-Type: application/octet-stream" -H "Authorization: token $GH_TOKEN" --data-binary "@$filename" "$uploadurl?name=$filename&label=$pullsha.osx64.dmg"
+        cd "$workdir"
     fi
 done

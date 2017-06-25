@@ -2,7 +2,7 @@
 
 #export GH_TOKEN=insert your token here
 
-workdir="${pwd}"
+workdir="$(pwd)"
 
 #endless loop
 while true; do
@@ -11,9 +11,11 @@ while true; do
     cd "$workdir"
     bash storjshare-gui/build-linux-binary.sh
 
-    clear
-    cd "$workdir"
-    bash storjshare-gui/github-comment-bot.sh
+    if [ "$(dpkg --print-architecture)" = "amd64" ]; then
+        clear
+        cd "$workdir"
+        bash storjshare-gui/github-comment-bot.sh
+    fi
 
     sleep 600
 done

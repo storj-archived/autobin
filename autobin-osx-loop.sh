@@ -2,7 +2,7 @@
 
 #export GH_TOKEN=insert your token here
 
-workdir="${pwd}"
+workdir="$(pwd)"
 
 #endless loop
 while true; do
