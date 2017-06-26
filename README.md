@@ -13,9 +13,7 @@ Autobin creates a draft release for every open pull request and deletes the rele
 
 ### Draft a new release
 
-Create a new release with the name "autobin draft release". Select base branch and release tag and save it as draft release. You can add a release discription any time. Autobin will build and upload binaries based on the selected branch and release tag. Be carefull with new commits. You have to delete the old binaries yourself to get new binaries.
-
-Rename the release to detach the build scripts. There you have the new release ready to publish.
+Create a new release with a release tag. Autobin will build binaries for the latest draft or published release. It will ignore releases without a release tag. Be carefull with new commits. You have to delete the old binaries yourself to get new binaries.
 
 Setup
 =====
