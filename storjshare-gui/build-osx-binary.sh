@@ -20,9 +20,9 @@ tags=$(curl -H "Accept: application/json" -H "Authorization: token $GH_TOKEN" $t
 
 for ((j=0; j < $(echo $releases | jq ". | length"); j++)); do
 
-    releasename=$(echo $releases | jq --raw-output ".[$j].name")
+    releasetag=$(echo $releases | jq --raw-output ".[$j].tag_name")
 
-    if [ "$releasename" = "autobin draft release" ]; then
+    if [ "$releasetag" != "null" ]; then
         assetfound=false
         asseturl=$(echo $releases | jq --raw-output ".[$j].assets_url")
         assets=$(curl -H "Accept: application/json" -H "Authorization: token $GH_TOKEN" $asseturl)
@@ -30,7 +30,7 @@ for ((j=0; j < $(echo $releases | jq ". | length"); j++)); do
 
             assetname=$(echo $assets | jq --raw-output ".[$k].name")
 
-            if [ "${assetname: -10}" = ".osx64.dmg" ]; then
+            if [ "${assetname: 14}" = ".osx64.dmg" ]; then
                 assetstate=$(echo $assets | jq --raw-output ".[$k].state")
                 if [ "$assetstate" = "new" ]; then
                     binaryurl=$(echo $assets | jq --raw-output ".[$k].url")
@@ -46,26 +46,14 @@ for ((j=0; j < $(echo $releases | jq ". | length"); j++)); do
             uploadurl=$(echo $releases | jq --raw-output ".[$j].upload_url")
             uploadurl=${uploadurl//\{?name,label\}/}
 
-            # existing build tag or branch
-            targetbranch=$(echo $releases | jq --raw-output ".[$j].target_commitish")
-            targettag=$(echo $releases | jq --raw-output ".[$j].tag_name")
-            if [ "$targettag" != "null" ]; then
-                for ((l=0; l < $(echo $tags | jq ". | length"); l++)); do
-                    tag=$(echo $tags | jq --raw-output ".[$l].name")
-                    if [ "$targettag" = "$tag" ]; then
-                        targetbranch=$targettag
-                    fi 
-                done
-            fi
-
             cd "$workdir"
             mkdir repos
             cd repos
 
             rm -rf $repositoryname
 
-            echo create and upload binary $repositoryurl $targetbranch
-            git clone $repositoryurl -b $targetbranch $repositoryname
+            echo create and upload binary $repositoryurl $releasetag
+            git clone $repositoryurl -b $releasetag $repositoryname
             cd $repositoryname
             npm install
             npm run release

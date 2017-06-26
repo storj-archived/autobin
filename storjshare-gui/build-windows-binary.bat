@@ -46,12 +46,12 @@ set /a pulls=!pulls!-1
 
 for /L %%J in (0, 1, !releases!) do (
 
-    type releases.json | jq --raw-output ".[%%J].name" > temp.dat
-    set /p releasename= < temp.dat
+    type releases.json | jq --raw-output ".[%%J].tag_name" > temp.dat
+    set /p releasetag= < temp.dat
     del temp.dat
     
-    rem build binaries for new draft release
-    if "!releasename!" == "autobin draft release" (
+    rem build binaries for new release tags
+    if not !releasetag! == null (
 
         set assetfound="false"
 
@@ -71,7 +71,7 @@ for /L %%J in (0, 1, !releases!) do (
             set /p assetname= < temp.dat
             del temp.dat
 
-            if "!assetname:~-10!" == "!extension!.exe" (
+            if "!assetname:~14!" == "!extension!.exe" (
 
                 type assets.json | jq --raw-output ".[%%K].state" > temp.dat
                 set /p assetstate= < temp.dat
@@ -94,33 +94,6 @@ for /L %%J in (0, 1, !releases!) do (
             set uploadurl=!uploadurl:{?name,label}=!
             del temp.dat
 
-            type releases.json | jq --raw-output ".[%%J].target_commitish" > temp.dat
-            set /p targetbranch= < temp.dat
-            del temp.dat
-
-            type releases.json | jq --raw-output ".[%%J].tag_name" > temp.dat
-            set /p targettag= < temp.dat
-            del temp.dat
-
-            if not !targettag! == null (
-
-                type tags.json | jq ". | length" > temp.dat
-                set /p tags= < temp.dat
-                del temp.dat
-                set /a tags=!tags!-1
-
-                for /L %%L in (0, 1, !tags!) do (
-
-                    type tags.json | jq --raw-output ".[%%L].name" > temp.dat
-                    set /p tag= < temp.dat
-                    del temp.dat
-
-                    if !targettag! == !tag! (
-                        set targetbranch=!targettag!
-                    )
-                )
-            )
-
             cd !workdir!
             mkdir repos
             cd repos
@@ -128,8 +101,8 @@ for /L %%J in (0, 1, !releases!) do (
             rem delete old build files
             rmdir /S /Q !repositoryname!
 
-            echo create and upload binary !repositoryurl! !targetbranch!
-            git clone "!repositoryurl!" -b "!targetbranch!" "!repositoryname!"
+            echo create and upload binary !repositoryurl! !releasetag!
+            git clone "!repositoryurl!" -b "!releasetag!" "!repositoryname!"
             cd !repositoryname!
             cmd /c npm install
             cmd /c npm run release
