@@ -63,6 +63,9 @@ for ((j=0; j < $(echo $releases | jq ". | length"); j++)); do
             curl -H "Accept: application/json" -H "Content-Type: application/octet-stream" -H "Authorization: token $GH_TOKEN" --data-binary "@$filename" "$uploadurl?name=$filename"
             cd "$workdir"
         fi
+
+        # don't build binaries for old release tags
+        break
     fi
 done
 

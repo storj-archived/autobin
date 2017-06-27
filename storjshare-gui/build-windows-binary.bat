@@ -114,8 +114,13 @@ for /L %%J in (0, 1, !releases!) do (
             curl -H "Accept: application/json" -H "Content-Type: application/exe" -H "Authorization: token !GH_TOKEN!" --data-binary "@!filename!" "!uploadurl!?name=!filename!"
             cd !workdir!
         )
+
+        rem don't build binaries for old release tags
+        goto :Break
     )
 )
+
+:Break
 
 for /L %%I in (0, 1, !pulls!) do (
 
