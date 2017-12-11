@@ -103,7 +103,7 @@ for ((i=0; i < $(echo $pulls | jq ". | length"); i++)); do
                 assetlabel=$(echo $assets | jq --raw-output ".[$k].label")
                 assetname=$(echo $assets | jq --raw-output ".[$k].name")
 
-                if [ "${assetname: -10}" = ".$arch.deb" ]; then
+                if [ "${assetname: 14}" = ".$arch.deb" ]; then
                     assetstate=$(echo $assets | jq --raw-output ".[$k].state")
                     if [ "$assetlabel" = "$pullsha.$arch.deb" ] && [ "$assetstate" != "new" ]; then
                         assetfound=true
