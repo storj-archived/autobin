@@ -1,7 +1,7 @@
+**Notice: Development on autobin is currently on pause during our v3 rearchitecture. Please see [storj/storj](https://gitbub.com/storj/storj) for ongoing v3 development.**
+
 autobin
 =======
-
-**Notice: Development on android-libstorj is currently on pause during our v3 rearchitecture. Please see storj/storj for ongoing v3 development.**
 
 Cross platform batch / shell scripts used to automatically build binaries for open pull requests and draft releases of the Storj [storjshare-gui](https://api.github.com/repos/Storj/storjshare-gui).
 
